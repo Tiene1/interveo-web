@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>W4 v4 — Détail d'une intervention · SIM</title>
+<meta name="viewport" content="width=1440">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.451.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root{
+    --brand:#2563EB; --brand-hover:#1D4ED8; --brand-dark:#1E3A8A;
+    --ink-1:#0F172A; --ink-2:#334155; --text-soft:#475569; --text-weak:#94A3B8;
+    --line:#E2E8F0; --line-strong:#CBD5E1; --line-soft:#EEF2F6;
+    --section:#F1F5F9; --surface:#FFFFFF;
+    --paper:#FBFBF9; --paper-soft:#F5F5F1; --zebra:#FCFCFA;
+    --success:#16A34A; --success-bg:#DCFCE7;
+    --warning:#D97706; --warning-bg:#FEF3C7;
+    --danger:#DC2626; --danger-bg:#FEE2E2;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink-1);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.003em}
+  ::selection{background:rgba(37,99,235,.14)}
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+
+  .canvas{padding:48px 24px 80px;display:flex;flex-direction:column;align-items:center;gap:56px;min-height:100vh}
+  .canvas-header{width:100%;max-width:1392px;display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+  .canvas-header h1{margin:0;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase}
+  .canvas-header .meta{font-size:12px;color:var(--text-weak);letter-spacing:.02em}
+  .variant-label{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.16em;margin-bottom:14px;padding-left:2px}
+  .variant-label .dot{width:5px;height:5px;border-radius:1px;background:var(--warning)}
+  .variant-label[data-state="realisee"] .dot{background:var(--success)}
+  .variant-label[data-state="modal"] .dot{background:var(--danger)}
+
+  .frame{background:var(--paper);border-top:2px solid var(--brand);border-left:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);width:1440px;position:relative}
+  .shell{display:grid;grid-template-columns:56px 1fr;min-height:960px}
+
+  .rail{background:var(--paper);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:2px}
+  .rail-logo{width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--ink-1);letter-spacing:-.04em;margin-bottom:14px;position:relative}
+  .rail-logo::after{content:"";position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:14px;height:1px;background:var(--brand)}
+  .rail-item{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--text-soft);cursor:pointer;border-radius:6px;transition:background .12s ease, color .12s ease;position:relative;margin:2px 0}
+  .rail-item svg{width:18px;height:18px;stroke-width:1.6}
+  .rail-item:hover{background:var(--line-soft);color:var(--ink-1)}
+  .rail-item.active{color:var(--ink-1)}
+  .rail-item.active::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:2px;background:var(--ink-1);border-radius:0 1px 1px 0}
+  .rail-spacer{flex:1}
+  .rail-user{width:28px;height:28px;border-radius:4px;background:var(--ink-1);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.02em}
+
+  .main{background:var(--paper);display:flex;flex-direction:column;min-width:0}
+  .date-strip{display:flex;justify-content:space-between;align-items:center;padding:20px 40px 0;color:var(--text-weak);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+  .date-strip .now{font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:.02em;color:var(--text-soft);text-transform:none}
+
+  .page{max-width:1200px;margin:0 auto;width:100%;padding:24px 40px 48px}
+
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:500;color:var(--text-weak);letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px}
+  .breadcrumb a{color:var(--text-soft);text-decoration:none;cursor:pointer}
+  .breadcrumb a:hover{color:var(--ink-1)}
+  .breadcrumb .sep{color:var(--text-weak);opacity:.5}
+  .breadcrumb .current{color:var(--text-soft);font-weight:600}
+
+  .doc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:24px;border-bottom:1px solid var(--ink-1)}
+  .doc-head .left{display:flex;flex-direction:column;gap:14px;flex:1;min-width:0}
+  .doc-ref{display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--text-weak);letter-spacing:.02em}
+  .doc-ref .hash{color:var(--text-weak)}
+  .doc-ref .num{color:var(--ink-1);font-weight:600}
+  .doc-ref .sep{color:var(--text-weak);opacity:.5}
+  .doc-title{font-family:'Fraunces',serif;font-optical-sizing:auto;font-variation-settings:"SOFT" 30, "WONK" 0;font-size:44px;font-weight:400;letter-spacing:-.035em;line-height:1.05;margin:0;color:var(--ink-1)}
+  .doc-status-line{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--text-soft)}
+  .status-inline{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--ink-1)}
+  .status-inline .marker{width:8px;height:8px;border-radius:1.5px;flex-shrink:0}
+  .status-inline[data-status="planifiee"] .marker{background:var(--warning)}
+  .status-inline[data-status="realisee"] .marker{background:var(--success)}
+  .status-inline[data-status="annulee"] .marker{background:var(--danger)}
+  .meta-inline{display:inline-flex;align-items:center;gap:8px}
+  .meta-inline .lab{color:var(--text-weak);font-weight:500}
+  .meta-inline .val{color:var(--ink-1);font-weight:500}
+  .meta-inline.mono .val{font-family:'JetBrains Mono',monospace;font-weight:500}
+  .doc-head .actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+  .doc-body{display:grid;grid-template-columns:240px 1fr;gap:56px;padding-top:32px}
+  .doc-side{display:flex;flex-direction:column;gap:28px;align-self:start}
+  .side-group{display:flex;flex-direction:column;gap:8px}
+  .side-title{font-size:10px;font-weight:600;color:var(--text-weak);letter-spacing:.16em;text-transform:uppercase}
+  .side-group .item{display:flex;flex-direction:column;gap:2px;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+  .side-group .item:last-child{border-bottom:none}
+  .side-group .item .lab{font-size:11px;font-weight:500;color:var(--text-weak);letter-spacing:.06em;text-transform:uppercase}
+  .side-group .item .val{font-size:14px;color:var(--ink-1);font-weight:500;letter-spacing:-.003em;line-height:1.35}
+  .side-group .item .val.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-weight:500;font-size:13.5px}
+  .side-group .item .val.muted{color:var(--text-weak);font-style:italic;font-weight:400}
+  .side-group .item .val a{color:var(--brand);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+  .side-group .item .val a:hover{color:var(--brand-hover)}
+
+  .doc-main{display:flex;flex-direction:column;gap:44px;min-width:0}
+  .doc-section .h{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .doc-section .h .title{font-family:'Fraunces',serif;font-size:22px;font-weight:400;letter-spacing:-.02em;color:var(--ink-1);margin:0}
+  .doc-section .h .title .em{font-style:italic}
+  .doc-section .h .idx{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--text-weak);letter-spacing:.02em}
+
+  .prose{font-size:15px;line-height:1.65;color:var(--ink-1);letter-spacing:-.003em}
+  .prose.muted{color:var(--text-weak);font-style:italic}
+  .prose p{margin:0}
+  .prose p + p{margin-top:12px}
+
+  .subsection{display:flex;flex-direction:column;gap:8px;padding-bottom:20px}
+  .subsection + .subsection{border-top:1px solid var(--line-soft);padding-top:20px}
+  .subsection .h{display:flex;align-items:baseline;justify-content:space-between;padding:0;border:none;margin:0}
+  .subsection .h .sublabel{font-size:10px;font-weight:600;color:var(--text-weak);letter-spacing:.16em;text-transform:uppercase}
+  .subsection .h .subcount{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-weak);font-weight:500;letter-spacing:.02em}
+
+  .photos{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .photo{position:relative;width:120px;height:90px;border:1px solid var(--line);overflow:hidden;background:var(--paper-soft);cursor:pointer;border-radius:2px}
+  .photo .fill{position:absolute;inset:0;background:repeating-linear-gradient(45deg, #E8E8E3 0 8px, #EFEFEA 8px 16px);display:flex;align-items:center;justify-content:center;color:var(--text-weak)}
+  .photo .fill svg{width:20px;height:20px;stroke-width:1.5;opacity:.6}
+  .photo .tag{position:absolute;left:6px;bottom:6px;background:var(--ink-1);color:#fff;padding:2px 5px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.06em}
+  .no-photo{font-size:13px;color:var(--text-weak);font-style:italic;padding:6px 0}
+
+  .btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid transparent;font:inherit;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background .12s ease, border-color .12s ease, color .12s ease;white-space:nowrap;letter-spacing:-.003em}
+  .btn svg{width:14px;height:14px;stroke-width:1.75}
+  .btn-primary{background:var(--ink-1);color:#fff;border-color:var(--ink-1)}
+  .btn-primary:hover{background:#000}
+  .btn-secondary{background:transparent;border-color:var(--line);color:var(--ink-1)}
+  .btn-secondary:hover{background:var(--line-soft);border-color:var(--line-strong)}
+  .btn-ghost{background:transparent;color:var(--text-soft)}
+  .btn-ghost:hover{background:var(--line-soft);color:var(--ink-1)}
+  .btn-danger-outline{background:transparent;border-color:var(--danger);color:var(--danger)}
+  .btn-danger-outline:hover{background:var(--danger-bg)}
+  .btn-danger-solid{background:var(--danger);color:#fff;border-color:var(--danger)}
+  .btn-danger-solid:hover{background:#B91C1C;border-color:#B91C1C}
+
+  .modal-overlay{position:absolute;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:5;backdrop-filter:blur(2px)}
+  .modal{width:480px;background:var(--paper);border:1px solid var(--line);border-top:2px solid var(--danger);box-shadow:0 40px 80px -20px rgba(15,23,42,.35);padding:32px;display:flex;flex-direction:column;gap:12px}
+  .modal .kicker{font-size:10px;font-weight:600;color:var(--danger);letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+  .modal .kicker::before{content:"";display:inline-block;width:24px;height:1px;background:var(--danger)}
+  .modal h3{font-family:'Fraunces',serif;font-size:26px;font-weight:400;letter-spacing:-.025em;line-height:1.15;color:var(--ink-1);margin:0}
+  .modal h3 .em{font-style:italic}
+  .modal p{margin:0;font-size:14px;color:var(--text-soft);line-height:1.55}
+  .modal-ref{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-weak);padding:12px 14px;background:var(--line-soft);border-left:2px solid var(--line-strong);margin:8px 0}
+  .modal-ref strong{color:var(--ink-1);font-weight:600}
+  .modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+</style>
+</head>
+<body>
+  <main class="canvas" data-screen-label="W4v4 Detail intervention">
+    <header class="canvas-header">
+      <h1>W4 · v4 · Détail d'une intervention</h1>
+      <span class="meta">Fiche éditoriale · 3 cadres</span>
+    </header>
+
+    <!-- (a) Planifiée -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label"><span class="dot"></span>Statut : Planifiée</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip"><div>SIM · Interventions</div><div class="now">Sam. 12 sept · 09:41</div></div>
+            <div class="page">
+              <div class="breadcrumb"><a>Opérations</a><span class="sep">/</span><a>Interventions</a><span class="sep">/</span><span class="current">#0142</span></div>
+              <div class="doc-head">
+                <div class="left">
+                  <div class="doc-ref">
+                    <span><span class="hash">#</span><span class="num">0142</span></span>
+                    <span class="sep">·</span>
+                    <span>Créée le 10/09/2026</span>
+                  </div>
+                  <h1 class="doc-title">Hôtel Ivoire</h1>
+                  <div class="doc-status-line">
+                    <span class="status-inline" data-status="planifiee"><span class="marker"></span>Planifiée</span>
+                    <span class="meta-inline mono"><span class="lab">→</span><span class="val">14/09/2026 · 09:00</span></span>
+                    <span class="meta-inline"><span class="lab">Assigné à</span><span class="val">Koffi N'Guessan</span></span>
+                  </div>
+                </div>
+                <div class="actions">
+                  <button class="btn btn-danger-outline" type="button">
+                    <i data-lucide="x-circle"></i>
+                    Annuler l'intervention
+                  </button>
+                </div>
+              </div>
+              <div class="doc-body">
+                <aside class="doc-side">
+                  <div class="side-group">
+                    <div class="side-title">Client &amp; lieu</div>
+                    <div class="item"><div class="lab">Client</div><div class="val">Hôtel Ivoire</div></div>
+                    <div class="item"><div class="lab">Adresse</div><div class="val">Boulevard Hassan II, Cocody</div></div>
+                    <div class="item"><div class="lab">Téléphone 1</div><div class="val mono">+225 07 07 07 07 07</div></div>
+                    <div class="item"><div class="lab">Téléphone 2</div><div class="val mono">+225 07 07 07 07 07</div></div>
+                    <div class="item"><div class="lab">Géolocalisation</div><div class="val"><a href="#">Ouvrir dans Google Maps ↗</a></div></div>
+                  </div>
+                  <div class="side-group">
+                    <div class="side-title">Attribution</div>
+                    <div class="item"><div class="lab">Technicien</div><div class="val">Koffi N'Guessan</div></div>
+                    <div class="item"><div class="lab">Motif signalé</div><div class="val muted">— non renseigné —</div></div>
+                    <div class="item"><div class="lab">Type d'équipement</div><div class="val muted">— non renseigné —</div></div>
+                  </div>
+                </aside>
+                <div class="doc-main">
+                  <div class="doc-section">
+                    <div class="h"><h2 class="title"><span class="em">Compte rendu</span> terrain</h2><span class="idx">01</span></div>
+                    <div class="subsection"><div class="h"><span class="sublabel">Problème constaté</span></div><p class="prose muted">— non renseigné —</p></div>
+                    <div class="subsection"><div class="h"><span class="sublabel">Travaux réalisés</span></div><p class="prose muted">— non renseigné —</p></div>
+                  </div>
+                  <div class="doc-section">
+                    <div class="h"><h2 class="title"><span class="em">Photos</span> avant / après</h2><span class="idx">02</span></div>
+                    <div class="subsection"><div class="h"><span class="sublabel">Avant</span><span class="subcount">0 / 2</span></div><div class="no-photo">Aucune photo</div></div>
+                    <div class="subsection"><div class="h"><span class="sublabel">Après</span><span class="subcount">0 / 2</span></div><div class="no-photo">Aucune photo</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- (b) Réalisée -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label" data-state="realisee"><span class="dot"></span>Statut : Réalisée</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip"><div>SIM · Interventions</div><div class="now">Sam. 12 sept · 16:20</div></div>
+            <div class="page">
+              <div class="breadcrumb"><a>Opérations</a><span class="sep">/</span><a>Interventions</a><span class="sep">/</span><span class="current">#0135</span></div>
+              <div class="doc-head">
+                <div class="left">
+                  <div class="doc-ref"><span><span class="hash">#</span><span class="num">0135</span></span><span class="sep">·</span><span>Créée le 08/09/2026</span></div>
+                  <h1 class="doc-title">Pharmacie Saint Jean</h1>
+                  <div class="doc-status-line">
+                    <span class="status-inline" data-status="realisee"><span class="marker"></span>Réalisée</span>
+                    <span class="meta-inline mono"><span class="lab">Prévu</span><span class="val">12/09/2026 · 09:00</span></span>
+                    <span class="meta-inline mono"><span class="lab">Clôturée</span><span class="val">12/09/2026 · 15:30</span></span>
+                    <span class="meta-inline"><span class="lab">Par</span><span class="val">Awa Traoré</span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="doc-body">
+                <aside class="doc-side">
+                  <div class="side-group">
+                    <div class="side-title">Client &amp; lieu</div>
+                    <div class="item"><div class="lab">Client</div><div class="val">Pharmacie Saint Jean</div></div>
+                    <div class="item"><div class="lab">Adresse</div><div class="val">Rue des Jardins, II Plateaux</div></div>
+                    <div class="item"><div class="lab">Téléphone 1</div><div class="val mono">+225 07 07 07 07 07</div></div>
+                    <div class="item"><div class="lab">Géolocalisation</div><div class="val"><a href="#">Ouvrir dans Google Maps ↗</a></div></div>
+                  </div>
+                  <div class="side-group">
+                    <div class="side-title">Attribution</div>
+                    <div class="item"><div class="lab">Technicien</div><div class="val">Awa Traoré</div></div>
+                    <div class="item"><div class="lab">Motif signalé</div><div class="val muted">— non renseigné —</div></div>
+                    <div class="item"><div class="lab">Type d'équipement</div><div class="val muted">— non renseigné —</div></div>
+                  </div>
+                </aside>
+                <div class="doc-main">
+                  <div class="doc-section">
+                    <div class="h"><h2 class="title"><span class="em">Compte rendu</span> terrain</h2><span class="idx">01</span></div>
+                    <div class="subsection">
+                      <div class="h"><span class="sublabel">Problème constaté</span></div>
+                      <div class="prose"><p>Climatiseur split de la pharmacie principale hors service depuis deux jours. Compresseur bruyant au démarrage, puis arrêt automatique. Température ambiante mesurée à 32 °C, gêne pour la conservation des produits sensibles.</p></div>
+                    </div>
+                    <div class="subsection">
+                      <div class="h"><span class="sublabel">Travaux réalisés</span></div>
+                      <div class="prose">
+                        <p>Nettoyage complet de l'unité extérieure. Contrôle des pressions et recharge en gaz R410A (400 g). Remplacement du condensateur de démarrage défaillant.</p>
+                        <p>Essais de fonctionnement sur 30 min : température soufflée 14 °C, aucun bruit anormal.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="doc-section">
+                    <div class="h"><h2 class="title"><span class="em">Photos</span> avant / après</h2><span class="idx">02</span></div>
+                    <div class="subsection">
+                      <div class="h"><span class="sublabel">Avant</span><span class="subcount">2 / 2</span></div>
+                      <div class="photos">
+                        <div class="photo"><div class="fill"><i data-lucide="image"></i></div><span class="tag">AVANT · 01</span></div>
+                        <div class="photo"><div class="fill"><i data-lucide="image"></i></div><span class="tag">AVANT · 02</span></div>
+                      </div>
+                    </div>
+                    <div class="subsection">
+                      <div class="h"><span class="sublabel">Après</span><span class="subcount">2 / 2</span></div>
+                      <div class="photos">
+                        <div class="photo"><div class="fill"><i data-lucide="image"></i></div><span class="tag">APRES · 01</span></div>
+                        <div class="photo"><div class="fill"><i data-lucide="image"></i></div><span class="tag">APRES · 02</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- (c) Modale -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label" data-state="modal"><span class="dot"></span>Modale : confirmation d'annulation</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip"><div>SIM · Interventions</div><div class="now">Sam. 12 sept · 09:41</div></div>
+            <div class="page">
+              <div class="breadcrumb"><a>Opérations</a><span class="sep">/</span><a>Interventions</a><span class="sep">/</span><span class="current">#0142</span></div>
+              <div class="doc-head">
+                <div class="left">
+                  <div class="doc-ref"><span><span class="hash">#</span><span class="num">0142</span></span><span class="sep">·</span><span>Créée le 10/09/2026</span></div>
+                  <h1 class="doc-title">Hôtel Ivoire</h1>
+                  <div class="doc-status-line">
+                    <span class="status-inline" data-status="planifiee"><span class="marker"></span>Planifiée</span>
+                    <span class="meta-inline mono"><span class="lab">→</span><span class="val">14/09/2026 · 09:00</span></span>
+                    <span class="meta-inline"><span class="lab">Assigné à</span><span class="val">Koffi N'Guessan</span></span>
+                  </div>
+                </div>
+                <div class="actions">
+                  <button class="btn btn-danger-outline" type="button"><i data-lucide="x-circle"></i>Annuler l'intervention</button>
+                </div>
+              </div>
+              <div class="doc-body">
+                <aside class="doc-side">
+                  <div class="side-group">
+                    <div class="side-title">Client &amp; lieu</div>
+                    <div class="item"><div class="lab">Client</div><div class="val">Hôtel Ivoire</div></div>
+                    <div class="item"><div class="lab">Adresse</div><div class="val">Boulevard Hassan II, Cocody</div></div>
+                    <div class="item"><div class="lab">Téléphone 1</div><div class="val mono">+225 07 07 07 07 07</div></div>
+                  </div>
+                </aside>
+                <div class="doc-main">
+                  <div class="doc-section">
+                    <div class="h"><h2 class="title"><span class="em">Compte rendu</span> terrain</h2><span class="idx">01</span></div>
+                    <div class="subsection"><div class="h"><span class="sublabel">Problème constaté</span></div><p class="prose muted">— non renseigné —</p></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-overlay" role="dialog" aria-modal="true">
+          <div class="modal">
+            <div class="kicker">Action définitive</div>
+            <h3>Annuler cette <span class="em">intervention</span> ?</h3>
+            <p>Cette action est définitive. L'intervention passera au statut « Annulée » et ne pourra plus être modifiée ni réactivée.</p>
+            <div class="modal-ref"><strong>#0142</strong> · Hôtel Ivoire · prévue le 14/09/2026 · 09:00</div>
+            <div class="actions">
+              <button class="btn btn-ghost" type="button">Retour</button>
+              <button class="btn btn-danger-solid" type="button">Annuler l'intervention</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+<script>
+  if (window.lucide) window.lucide.createIcons();
+</script>
+</body>
+</html>

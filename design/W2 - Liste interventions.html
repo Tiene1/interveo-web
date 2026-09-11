@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>W2 v4 — Liste des interventions · SIM</title>
+<meta name="viewport" content="width=1440">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.451.0/dist/umd/lucide.min.js"></script>
+<style>
+  /* ==========================================================
+     v4 — "Fiche technique éditoriale"
+     Palette §2 conservée
+     ========================================================== */
+  :root{
+    --brand:#2563EB; --brand-hover:#1D4ED8; --brand-dark:#1E3A8A; --accent:#F59E0B;
+    --ink-1:#0F172A; --ink-2:#334155; --text-soft:#475569; --text-weak:#94A3B8;
+    --line:#E2E8F0; --line-strong:#CBD5E1; --line-soft:#EEF2F6;
+    --section:#F1F5F9; --surface:#FFFFFF; --app:#FBFBF9;
+    --success:#16A34A; --success-bg:#DCFCE7;
+    --warning:#D97706; --warning-bg:#FEF3C7;
+    --danger:#DC2626; --danger-bg:#FEE2E2;
+    --info:#0891B2; --info-bg:#CFFAFE;
+
+    /* v4 additions */
+    --paper:#FBFBF9;                   /* fond général très légèrement crème */
+    --paper-soft:#F5F5F1;              /* zone plus posée (rail) */
+    --zebra:#FCFCFA;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--paper);
+    color:var(--ink-1);
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    letter-spacing:-.003em;
+  }
+  ::selection{background:rgba(37,99,235,.14)}
+
+  .serif{
+    font-family:'Fraunces',ui-serif,Georgia,serif;
+    font-optical-sizing:auto;
+    font-variation-settings:"SOFT" 30, "WONK" 0;
+    letter-spacing:-.02em;
+  }
+  .mono{
+    font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.005em;
+  }
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ==========================================================
+     Preview canvas
+     ========================================================== */
+  .canvas{
+    padding:48px 24px 80px;
+    display:flex;flex-direction:column;align-items:center;gap:56px;
+    min-height:100vh;
+  }
+  .canvas-header{
+    width:100%;max-width:1392px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding-bottom:14px;border-bottom:1px dashed var(--line);
+  }
+  .canvas-header h1{
+    margin:0;font-size:12px;font-weight:600;
+    color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase;
+  }
+  .canvas-header .meta{font-size:12px;color:var(--text-weak);letter-spacing:.02em}
+  .variant-label{
+    display:flex;align-items:center;gap:10px;
+    font-size:10px;font-weight:600;color:var(--text-soft);
+    text-transform:uppercase;letter-spacing:.16em;
+    margin-bottom:14px;
+    padding-left:2px;
+  }
+  .variant-label .dot{width:5px;height:5px;border-radius:1px;background:var(--success)}
+  .variant-label[data-state="loading"] .dot{background:var(--warning)}
+  .variant-label[data-state="empty"] .dot{background:var(--text-weak)}
+  .variant-label[data-state="error"] .dot{background:var(--danger)}
+
+  /* ==========================================================
+     App frame (juste un cadre visuel pour le preview canvas)
+     ========================================================== */
+  .frame{
+    background:var(--paper);
+    border-radius:2px;
+    overflow:hidden;
+    width:1440px;
+    border-top:2px solid var(--brand);     /* signature discrète */
+    border-left:1px solid var(--line);
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+
+  /* ==========================================================
+     Shell : rail 56px + main
+     ========================================================== */
+  .shell{
+    display:grid;
+    grid-template-columns:56px 1fr;
+    min-height:820px;
+  }
+
+  /* ---- Rail nav (56px) ---- */
+  .rail{
+    background:var(--paper);
+    border-right:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;
+    padding:16px 0;
+    gap:2px;
+  }
+  .rail-logo{
+    width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    font-weight:600;font-size:16px;
+    color:var(--ink-1);
+    letter-spacing:-.04em;
+    margin-bottom:14px;
+    position:relative;
+  }
+  .rail-logo::after{
+    content:"";
+    position:absolute;
+    bottom:-8px;left:50%;transform:translateX(-50%);
+    width:14px;height:1px;background:var(--brand);
+  }
+
+  .rail-item{
+    width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-soft);
+    cursor:pointer;
+    border-radius:6px;
+    transition:background .12s ease, color .12s ease;
+    position:relative;
+    margin:2px 0;
+  }
+  .rail-item svg{width:18px;height:18px;stroke-width:1.6}
+  .rail-item:hover{background:var(--line-soft);color:var(--ink-1)}
+  .rail-item.active{color:var(--ink-1)}
+  .rail-item.active::before{
+    content:"";
+    position:absolute;left:-10px;top:8px;bottom:8px;
+    width:2px;background:var(--ink-1);
+    border-radius:0 1px 1px 0;
+  }
+  .rail-item .tooltip{
+    position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
+    background:var(--ink-1);color:#fff;
+    padding:5px 9px;border-radius:4px;
+    font-size:11px;font-weight:500;letter-spacing:.01em;
+    white-space:nowrap;
+    opacity:0;pointer-events:none;
+    transition:opacity .12s ease;
+    z-index:5;
+  }
+  .rail-item:hover .tooltip{opacity:1}
+  .rail-spacer{flex:1}
+  .rail-user{
+    width:28px;height:28px;border-radius:4px;
+    background:var(--ink-1);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;font-weight:600;letter-spacing:.02em;
+    cursor:pointer;
+  }
+
+  /* ---- Main ---- */
+  .main{
+    background:var(--paper);
+    display:flex;flex-direction:column;
+    min-width:0;
+  }
+
+  /* Date en haut à droite */
+  .date-strip{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 40px 0;
+    color:var(--text-weak);
+    font-size:11px;font-weight:500;
+    letter-spacing:.08em;text-transform:uppercase;
+  }
+  .date-strip .now{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:500;letter-spacing:.02em;
+    color:var(--text-soft);
+    text-transform:none;
+  }
+
+  /* Page header : titre + menu Notion-style */
+  .page{
+    max-width:1200px;
+    margin:0 auto;
+    width:100%;
+    padding:32px 40px 48px;
+  }
+
+  .page-head{
+    margin-bottom:28px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+  }
+  .page-head .left{display:flex;flex-direction:column;gap:12px;flex:1;min-width:0}
+
+  .breadcrumb{
+    display:flex;align-items:center;gap:8px;
+    font-size:11px;font-weight:500;color:var(--text-weak);
+    letter-spacing:.06em;text-transform:uppercase;
+  }
+  .breadcrumb .sep{color:var(--text-weak);opacity:.5}
+  .breadcrumb .current{color:var(--text-soft);font-weight:600}
+
+  /* Titre + nav dropdown (comme Notion) */
+  .page-title-row{
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  }
+  .page-title{
+    font-family:'Fraunces',serif;
+    font-optical-sizing:auto;
+    font-variation-settings:"SOFT" 30, "WONK" 0;
+    font-size:44px;font-weight:400;
+    letter-spacing:-.035em;
+    line-height:1.05;
+    margin:0;
+    color:var(--ink-1);
+  }
+  .page-title .accent{
+    font-style:italic;font-weight:400;
+    color:var(--ink-1);
+  }
+  .page-menu{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 8px 4px 10px;
+    border-radius:5px;
+    border:none;background:transparent;
+    color:var(--text-soft);
+    font:inherit;font-size:13px;font-weight:500;
+    cursor:pointer;
+    transition:background .12s ease;
+  }
+  .page-menu:hover{background:var(--line-soft);color:var(--ink-1)}
+  .page-menu svg{width:14px;height:14px;stroke-width:1.75}
+
+  .page-caption{
+    font-size:14px;color:var(--text-soft);line-height:1.5;
+    max-width:640px;
+  }
+  .page-caption .num-count{
+    color:var(--ink-1);font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .page-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+  /* Buttons */
+  .btn{
+    height:34px;padding:0 14px;
+    border-radius:6px;
+    border:1px solid transparent;
+    font:inherit;font-size:13px;font-weight:500;
+    cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    transition:background .12s ease, border-color .12s ease, color .12s ease;
+    white-space:nowrap;letter-spacing:-.003em;
+  }
+  .btn svg{width:14px;height:14px;stroke-width:1.75}
+  .btn-primary{
+    background:var(--ink-1);color:#fff;border-color:var(--ink-1);
+  }
+  .btn-primary:hover{background:#000}
+  .btn-secondary{
+    background:transparent;border-color:var(--line);color:var(--ink-1);
+  }
+  .btn-secondary:hover{background:var(--line-soft);border-color:var(--line-strong)}
+  .btn-ghost{
+    background:transparent;color:var(--text-soft);
+  }
+  .btn-ghost:hover{background:var(--line-soft);color:var(--ink-1)}
+
+  /* ==========================================================
+     Filters : ligne texte fine, pas de card
+     ========================================================== */
+  .filters{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:0 0 12px;
+    margin-bottom:0;
+    border-bottom:1px solid var(--line);
+  }
+  .filters-left{display:flex;align-items:center;gap:20px;flex:1;min-width:0}
+  .filter-inline{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 0;
+    background:none;border:none;color:var(--text-soft);
+    font:inherit;font-size:13px;font-weight:500;
+    cursor:pointer;
+    transition:color .12s ease;
+    position:relative;
+  }
+  .filter-inline:hover{color:var(--ink-1)}
+  .filter-inline svg{width:13px;height:13px;stroke-width:1.75;color:var(--text-weak)}
+  .filter-inline .lab{color:var(--text-weak);font-weight:500}
+  .filter-inline .val{color:var(--ink-1);font-weight:600;letter-spacing:-.003em}
+  .filter-inline.has-value .val{
+    position:relative;
+  }
+
+  .filter-search{
+    display:flex;align-items:center;gap:8px;flex:1;max-width:260px;
+    padding:6px 0;
+    border-bottom:1px solid transparent;
+    transition:border-color .12s ease;
+  }
+  .filter-search:focus-within{border-color:var(--ink-1)}
+  .filter-search svg{width:14px;height:14px;stroke-width:1.75;color:var(--text-weak);flex-shrink:0}
+  .filter-search input{
+    flex:1;border:none;background:transparent;outline:none;
+    font:inherit;font-size:13px;color:var(--ink-1);
+  }
+  .filter-search input::placeholder{color:var(--text-weak)}
+
+  .reset-inline{
+    color:var(--brand);
+    background:none;border:none;
+    font:inherit;font-size:13px;font-weight:500;
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    text-decoration-thickness:1px;
+    padding:0;
+  }
+  .reset-inline:hover{color:var(--brand-hover)}
+
+  .filters-right{
+    display:flex;align-items:center;gap:16px;
+    color:var(--text-soft);font-size:13px;
+  }
+  .filters-right .kbd{
+    display:inline-flex;align-items:center;
+    padding:1px 6px;
+    border-radius:3px;background:var(--line-soft);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;color:var(--text-soft);
+    margin-left:6px;
+  }
+
+  /* ==========================================================
+     Table : l'objet héro, pas de card
+     ========================================================== */
+  .table{
+    margin-top:2px;
+    width:100%;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  thead th{
+    text-align:left;
+    padding:16px 12px 12px;
+    font-size:10px;font-weight:600;
+    color:var(--text-weak);
+    text-transform:uppercase;letter-spacing:.14em;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+    background:transparent;
+  }
+  thead th:first-child{padding-left:0}
+  thead th:last-child{padding-right:0}
+  thead th.sortable{cursor:pointer;user-select:none;transition:color .12s ease}
+  thead th.sortable:hover{color:var(--ink-1)}
+  thead th .sort{
+    display:inline-flex;vertical-align:middle;margin-left:5px;
+    color:var(--text-weak);opacity:.7;
+  }
+  thead th.asc{color:var(--ink-1)}
+  thead th.asc .sort{color:var(--ink-1);opacity:1}
+  thead th .sort svg{width:10px;height:10px;stroke-width:2.2}
+
+  tbody td{
+    padding:16px 12px;
+    border-bottom:1px solid var(--line-soft);
+    color:var(--ink-1);
+    vertical-align:middle;
+  }
+  tbody td:first-child{padding-left:0}
+  tbody td:last-child{padding-right:0}
+  tbody tr{
+    cursor:pointer;
+    position:relative;
+    transition:background .1s ease;
+  }
+  tbody tr:hover{background:var(--zebra)}
+  tbody tr.selected{
+    background:#F5F8FF;
+  }
+  tbody tr.selected td:first-child{
+    position:relative;
+  }
+  tbody tr.selected td:first-child::before{
+    content:"";position:absolute;
+    left:-40px;top:0;bottom:0;width:2px;background:var(--brand);
+  }
+
+  /* Reference (mono light) */
+  td.ref{
+    width:120px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;font-weight:400;
+    color:var(--text-weak);
+    letter-spacing:.01em;
+  }
+  td.ref .hash{color:var(--text-weak)}
+
+  /* Client cell */
+  td.client{width:30%}
+  td.client .name{
+    font-size:14px;font-weight:600;
+    color:var(--ink-1);
+    letter-spacing:-.008em;
+    line-height:1.3;
+    display:block;
+  }
+  td.client .loc{
+    display:block;
+    margin-top:3px;
+    font-size:12px;color:var(--text-soft);
+    line-height:1.3;
+    letter-spacing:0;
+  }
+
+  /* Date cell */
+  td.date{
+    width:170px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-1);
+  }
+  td.date .day{font-weight:500;color:var(--ink-1)}
+  td.date .sep{color:var(--text-weak);margin:0 6px;opacity:.7}
+  td.date .time{color:var(--text-soft);font-weight:400}
+
+  /* Technician cell */
+  td.tech{width:20%}
+  td.tech .tech-inline{
+    display:inline-flex;align-items:center;gap:10px;
+  }
+  .tech-initials{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;font-weight:500;
+    color:var(--text-weak);
+    letter-spacing:.04em;
+    padding:3px 6px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:var(--paper);
+    text-transform:uppercase;
+    flex-shrink:0;
+  }
+  .tech-name{
+    font-size:13px;color:var(--ink-1);font-weight:500;
+    letter-spacing:-.005em;
+  }
+
+  /* Status text (nom du statut en ink-1, marqueur discret) */
+  td.status{width:140px}
+  .status{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:13px;font-weight:500;
+    color:var(--ink-1);
+    letter-spacing:-.003em;
+  }
+  .status .marker{
+    width:8px;height:8px;border-radius:1.5px;
+    flex-shrink:0;
+    display:inline-block;
+  }
+  .status[data-status="planifiee"] .marker{background:var(--warning)}
+  .status[data-status="realisee"] .marker{background:var(--success)}
+  .status[data-status="annulee"] .marker{background:var(--danger)}
+  .status[data-status="annulee"]{
+    color:var(--text-soft);
+    text-decoration:line-through;
+    text-decoration-color:var(--text-weak);
+    text-decoration-thickness:1px;
+  }
+
+  /* Chevron révélé au hover uniquement */
+  td.chev{width:36px;text-align:right}
+  td.chev svg{color:var(--text-weak);opacity:0;transition:opacity .12s ease;width:14px;height:14px;stroke-width:1.75}
+  tbody tr:hover td.chev svg,
+  tbody tr.selected td.chev svg{opacity:1}
+
+  /* Pagination : ligne discrète en bas */
+  .pagination{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 0 0;
+    font-size:12px;color:var(--text-soft);
+  }
+  .pagination .info{
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:.02em;
+  }
+  .pagination .info strong{color:var(--ink-1);font-weight:600}
+  .pg-ctl{display:flex;align-items:center;gap:2px}
+  .pg-btn{
+    height:28px;padding:0 8px;
+    background:none;border:none;color:var(--text-soft);
+    font:inherit;font-size:12px;font-weight:500;
+    cursor:pointer;
+    display:inline-flex;align-items:center;gap:4px;
+    border-radius:4px;
+    transition:background .12s ease, color .12s ease;
+  }
+  .pg-btn:hover:not(:disabled){background:var(--line-soft);color:var(--ink-1)}
+  .pg-btn:disabled{color:var(--text-weak);cursor:not-allowed;opacity:.5}
+  .pg-btn svg{width:12px;height:12px;stroke-width:2}
+  .pg-page{
+    font-family:'JetBrains Mono',monospace;
+    padding:4px 8px;
+    color:var(--ink-1);font-weight:500;
+  }
+  .pg-page span{color:var(--text-weak);margin:0 4px}
+
+  /* ==========================================================
+     Skeleton
+     ========================================================== */
+  .skel{
+    display:inline-block;
+    height:11px;border-radius:3px;
+    background:linear-gradient(90deg,#F1F1EE 0%, #E4E4DE 50%, #F1F1EE 100%);
+    background-size:200% 100%;
+    animation:shimmer 1.4s ease-in-out infinite;
+    vertical-align:middle;
+  }
+  .skel.mark{width:8px;height:8px;border-radius:1.5px;vertical-align:middle}
+  .skel.chip{
+    display:inline-block;
+    height:20px;width:52px;border-radius:3px;vertical-align:middle;
+  }
+  @keyframes shimmer{
+    0%{background-position:200% 0}
+    100%{background-position:-200% 0}
+  }
+
+  /* ==========================================================
+     Empty / Error : typographique, pas d'illustration
+     ========================================================== */
+  .state{
+    padding:80px 20px 40px;
+    display:flex;flex-direction:column;align-items:flex-start;
+    max-width:520px;
+    gap:12px;
+  }
+  .state .rule{
+    width:32px;height:1px;
+    background:var(--ink-1);
+    margin-bottom:6px;
+  }
+  .state .rule.danger{background:var(--danger)}
+  .state .kicker{
+    font-size:11px;font-weight:600;
+    color:var(--text-soft);
+    letter-spacing:.14em;text-transform:uppercase;
+  }
+  .state h3{
+    font-family:'Fraunces',serif;
+    font-weight:400;font-size:28px;
+    letter-spacing:-.028em;
+    color:var(--ink-1);
+    margin:0;line-height:1.15;
+  }
+  .state h3 .accent{font-style:italic}
+  .state p{
+    margin:0;color:var(--text-soft);
+    font-size:14px;line-height:1.55;
+    max-width:420px;
+  }
+  .state .actions{
+    display:flex;gap:8px;margin-top:12px;
+  }
+
+  /* Motif blueprint sous le titre (optionnel) */
+  .blueprint-rule{
+    height:1px;
+    background-image:radial-gradient(circle at 1px 1px, var(--line-strong) 0.7px, transparent 0.7px);
+    background-size:8px 1px;
+    background-repeat:repeat-x;
+    background-position:left center;
+    margin:24px 0 0;
+    opacity:.9;
+  }
+
+</style>
+</head>
+<body>
+  <main class="canvas" data-screen-label="W2v4 Liste interventions">
+
+    <header class="canvas-header">
+      <h1>W2 · v4 · Fiche technique éditoriale</h1>
+      <span class="meta">Radical minimalism · Fraunces · rail 56px · nav Notion-style</span>
+    </header>
+
+    <!-- ============================================================ Vue principale ============================================================ -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label"><span class="dot"></span>État : données (vue principale)</div></div>
+      <div class="frame">
+        <div class="shell">
+
+          <!-- Rail nav (56px) -->
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+
+            <div class="rail-item active">
+              <i data-lucide="list"></i>
+              <span class="tooltip">Interventions</span>
+            </div>
+            <div class="rail-item">
+              <i data-lucide="calendar"></i>
+              <span class="tooltip">Planning</span>
+            </div>
+            <div class="rail-item">
+              <i data-lucide="users"></i>
+              <span class="tooltip">Techniciens</span>
+            </div>
+            <div class="rail-spacer"></div>
+
+            <div class="rail-item">
+              <i data-lucide="settings"></i>
+              <span class="tooltip">Paramètres</span>
+            </div>
+            <div class="rail-user">KB</div>
+          </aside>
+
+          <!-- Main -->
+          <div class="main">
+            <div class="date-strip">
+              <div>SIM · Interventions</div>
+              <div class="now">Sam. 12 sept · 09:41</div>
+            </div>
+
+            <div class="page">
+
+              <!-- Header : titre + menu dropdown Notion-style -->
+              <div class="page-head">
+                <div class="left">
+                  <div class="breadcrumb">
+                    <span>Opérations</span>
+                    <span class="sep">/</span>
+                    <span class="current">Interventions</span>
+                  </div>
+                  <div class="page-title-row">
+                    <h1 class="page-title">Interventions<span class="accent">.</span></h1>
+                    <button class="page-menu" type="button">
+                      Toutes
+                      <i data-lucide="chevron-down"></i>
+                    </button>
+                  </div>
+                  <p class="page-caption">
+                    <span class="num-count">9</span> interventions au total —
+                    <span class="num-count">4</span> planifiées, <span class="num-count">3</span> réalisées, <span class="num-count">2</span> annulées.
+                  </p>
+                </div>
+
+                <div class="page-actions">
+                  <button class="btn btn-secondary" type="button">
+                    <i data-lucide="filter"></i>
+                    Filtres
+                  </button>
+                  <button class="btn btn-primary" type="button">
+                    <i data-lucide="plus"></i>
+                    Nouvelle intervention
+                  </button>
+                </div>
+              </div>
+
+              <!-- Filtres ligne fine -->
+              <div class="filters">
+                <div class="filters-left">
+                  <div class="filter-search">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Filtrer par nom de client…">
+                  </div>
+                  <button class="filter-inline has-value" type="button">
+                    <span class="lab">Technicien</span>
+                    <span class="val">Tous</span>
+                    <i data-lucide="chevron-down"></i>
+                  </button>
+                  <button class="reset-inline" type="button">Réinitialiser</button>
+                </div>
+                <div class="filters-right">
+                  Trié par <strong style="color:var(--ink-1);font-weight:600">date prévue</strong>
+                  <span class="kbd">S</span>
+                </div>
+              </div>
+
+              <!-- Table -->
+              <div class="table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="ref">Réf.</th>
+                      <th>Client</th>
+                      <th class="asc sortable">Date prévue <span class="sort"><i data-lucide="arrow-down"></i></span></th>
+                      <th>Technicien</th>
+                      <th>Statut</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+
+                    <tr class="selected" data-status="planifiee">
+                      <td class="ref"><span class="hash">#</span>0142</td>
+                      <td class="client">
+                        <span class="name">Hôtel Ivoire</span>
+                        <span class="loc">Boulevard Hassan II, Cocody</span>
+                      </td>
+                      <td class="date"><span class="day">14/09/2026</span><span class="sep">·</span><span class="time">09:00</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">KN</span><span class="tech-name">Koffi N'Guessan</span></span></td>
+                      <td class="status"><span class="status" data-status="planifiee"><span class="marker"></span>Planifiée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="planifiee">
+                      <td class="ref"><span class="hash">#</span>0141</td>
+                      <td class="client">
+                        <span class="name">SGBCI Plateau</span>
+                        <span class="loc">Avenue Chardy, Plateau</span>
+                      </td>
+                      <td class="date"><span class="day">14/09/2026</span><span class="sep">·</span><span class="time">11:30</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">AT</span><span class="tech-name">Awa Traoré</span></span></td>
+                      <td class="status"><span class="status" data-status="planifiee"><span class="marker"></span>Planifiée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="planifiee">
+                      <td class="ref"><span class="hash">#</span>0140</td>
+                      <td class="client">
+                        <span class="name">Pharmacie Saint Jean</span>
+                        <span class="loc">Rue des Jardins, II Plateaux</span>
+                      </td>
+                      <td class="date"><span class="day">13/09/2026</span><span class="sep">·</span><span class="time">15:00</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">SK</span><span class="tech-name">Serge Kouamé</span></span></td>
+                      <td class="status"><span class="status" data-status="planifiee"><span class="marker"></span>Planifiée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="realisee">
+                      <td class="ref"><span class="hash">#</span>0139</td>
+                      <td class="client">
+                        <span class="name">Résidence Les Palmiers</span>
+                        <span class="loc">Zone 4, Marcory</span>
+                      </td>
+                      <td class="date"><span class="day">13/09/2026</span><span class="sep">·</span><span class="time">08:30</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">IB</span><span class="tech-name">Ismaël Bakayoko</span></span></td>
+                      <td class="status"><span class="status" data-status="realisee"><span class="marker"></span>Réalisée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="realisee">
+                      <td class="ref"><span class="hash">#</span>0138</td>
+                      <td class="client">
+                        <span class="name">Boulangerie La Concorde</span>
+                        <span class="loc">Rue des Jardins, II Plateaux</span>
+                      </td>
+                      <td class="date"><span class="day">12/09/2026</span><span class="sep">·</span><span class="time">15:30</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">KN</span><span class="tech-name">Koffi N'Guessan</span></span></td>
+                      <td class="status"><span class="status" data-status="realisee"><span class="marker"></span>Réalisée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="realisee">
+                      <td class="ref"><span class="hash">#</span>0137</td>
+                      <td class="client">
+                        <span class="name">Hôtel Ivoire</span>
+                        <span class="loc">Boulevard Hassan II, Cocody</span>
+                      </td>
+                      <td class="date"><span class="day">12/09/2026</span><span class="sep">·</span><span class="time">09:00</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">AT</span><span class="tech-name">Awa Traoré</span></span></td>
+                      <td class="status"><span class="status" data-status="realisee"><span class="marker"></span>Réalisée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="annulee">
+                      <td class="ref"><span class="hash">#</span>0136</td>
+                      <td class="client">
+                        <span class="name">SGBCI Plateau</span>
+                        <span class="loc">Avenue Chardy, Plateau</span>
+                      </td>
+                      <td class="date"><span class="day">11/09/2026</span><span class="sep">·</span><span class="time">14:00</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">SK</span><span class="tech-name">Serge Kouamé</span></span></td>
+                      <td class="status"><span class="status" data-status="annulee"><span class="marker"></span>Annulée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="realisee">
+                      <td class="ref"><span class="hash">#</span>0135</td>
+                      <td class="client">
+                        <span class="name">Pharmacie Saint Jean</span>
+                        <span class="loc">Rue des Jardins, II Plateaux</span>
+                      </td>
+                      <td class="date"><span class="day">10/09/2026</span><span class="sep">·</span><span class="time">10:00</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">IB</span><span class="tech-name">Ismaël Bakayoko</span></span></td>
+                      <td class="status"><span class="status" data-status="realisee"><span class="marker"></span>Réalisée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                    <tr data-status="annulee">
+                      <td class="ref"><span class="hash">#</span>0134</td>
+                      <td class="client">
+                        <span class="name">Résidence Les Palmiers</span>
+                        <span class="loc">Zone 4, Marcory</span>
+                      </td>
+                      <td class="date"><span class="day">09/09/2026</span><span class="sep">·</span><span class="time">16:00</span></td>
+                      <td class="tech"><span class="tech-inline"><span class="tech-initials">KN</span><span class="tech-name">Koffi N'Guessan</span></span></td>
+                      <td class="status"><span class="status" data-status="annulee"><span class="marker"></span>Annulée</span></td>
+                      <td class="chev"><i data-lucide="chevron-right"></i></td>
+                    </tr>
+
+                  </tbody>
+                </table>
+
+                <div class="pagination">
+                  <div class="info"><strong>1–9</strong> sur <strong>9</strong> interventions</div>
+                  <div class="pg-ctl">
+                    <button class="pg-btn" disabled><i data-lucide="chevron-left"></i>Précédent</button>
+                    <span class="pg-page">1<span>/</span>1</span>
+                    <button class="pg-btn" disabled>Suivant<i data-lucide="chevron-right"></i></button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ Chargement ============================================================ -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label" data-state="loading"><span class="dot"></span>État : chargement</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip">
+              <div>SIM · Interventions</div>
+              <div class="now">Sam. 12 sept · 09:41</div>
+            </div>
+            <div class="page">
+              <div class="page-head">
+                <div class="left">
+                  <div class="breadcrumb"><span>Opérations</span><span class="sep">/</span><span class="current">Interventions</span></div>
+                  <div class="page-title-row">
+                    <h1 class="page-title">Interventions<span class="accent">.</span></h1>
+                    <button class="page-menu">Toutes<i data-lucide="chevron-down"></i></button>
+                  </div>
+                  <p class="page-caption" style="color:var(--text-weak)">Chargement des données…</p>
+                </div>
+                <div class="page-actions">
+                  <button class="btn btn-primary"><i data-lucide="plus"></i>Nouvelle intervention</button>
+                </div>
+              </div>
+
+              <div class="filters">
+                <div class="filters-left">
+                  <div class="filter-search">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Filtrer par nom de client…">
+                  </div>
+                  <button class="filter-inline has-value"><span class="lab">Technicien</span><span class="val">Tous</span><i data-lucide="chevron-down"></i></button>
+                </div>
+              </div>
+
+              <div class="table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="ref">Réf.</th>
+                      <th>Client</th>
+                      <th>Date prévue</th>
+                      <th>Technicien</th>
+                      <th>Statut</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="skel-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ Vide ============================================================ -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label" data-state="empty"><span class="dot"></span>État : liste vide</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip">
+              <div>SIM · Interventions</div>
+              <div class="now">Sam. 12 sept · 09:41</div>
+            </div>
+            <div class="page">
+              <div class="page-head">
+                <div class="left">
+                  <div class="breadcrumb"><span>Opérations</span><span class="sep">/</span><span class="current">Interventions</span></div>
+                  <div class="page-title-row">
+                    <h1 class="page-title">Interventions<span class="accent">.</span></h1>
+                    <button class="page-menu">Toutes<i data-lucide="chevron-down"></i></button>
+                  </div>
+                </div>
+                <div class="page-actions">
+                  <button class="btn btn-primary"><i data-lucide="plus"></i>Nouvelle intervention</button>
+                </div>
+              </div>
+
+              <div class="state">
+                <div class="rule"></div>
+                <div class="kicker">Aucune donnée</div>
+                <h3>Aucune intervention <span class="accent">pour le moment</span>.</h3>
+                <p>Commencez par créer votre première intervention. Vous pourrez ensuite l'attribuer à un technicien et suivre son avancement depuis cette page.</p>
+                <div class="actions">
+                  <button class="btn btn-primary"><i data-lucide="plus"></i>Nouvelle intervention</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ Erreur ============================================================ -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label" data-state="error"><span class="dot"></span>État : erreur</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip">
+              <div>SIM · Interventions</div>
+              <div class="now">Sam. 12 sept · 09:41</div>
+            </div>
+            <div class="page">
+              <div class="page-head">
+                <div class="left">
+                  <div class="breadcrumb"><span>Opérations</span><span class="sep">/</span><span class="current">Interventions</span></div>
+                  <div class="page-title-row">
+                    <h1 class="page-title">Interventions<span class="accent">.</span></h1>
+                    <button class="page-menu">Toutes<i data-lucide="chevron-down"></i></button>
+                  </div>
+                </div>
+                <div class="page-actions">
+                  <button class="btn btn-primary"><i data-lucide="plus"></i>Nouvelle intervention</button>
+                </div>
+              </div>
+
+              <div class="state">
+                <div class="rule danger"></div>
+                <div class="kicker" style="color:var(--danger)">Erreur de chargement</div>
+                <h3>Impossible de charger les <span class="accent">interventions</span>.</h3>
+                <p>Une erreur est survenue lors de la récupération des données. Vérifiez votre connexion internet, puis réessayez.</p>
+                <div class="actions">
+                  <button class="btn btn-secondary"><i data-lucide="rotate-cw"></i>Réessayer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+<script>
+  // Skeleton rows
+  (function(){
+    const body = document.getElementById('skel-body');
+    if(!body) return;
+    const widths = [
+      [40, 60, 45, 62, 30], [40, 72, 45, 58, 30], [40, 55, 45, 66, 30],
+      [40, 68, 45, 54, 30], [40, 62, 45, 62, 30], [40, 74, 45, 58, 30],
+      [40, 58, 45, 64, 30], [40, 66, 45, 56, 30]
+    ];
+    let html = '';
+    for (const [wr, wc, wd, wt, ws] of widths){
+      html += `
+        <tr>
+          <td class="ref"><span class="skel" style="width:${wr}px"></span></td>
+          <td class="client">
+            <div><span class="skel" style="width:${wc}%"></span></div>
+            <div style="margin-top:6px"><span class="skel" style="width:${wc - 20}%;height:9px"></span></div>
+          </td>
+          <td class="date"><span class="skel" style="width:${wd}%"></span></td>
+          <td class="tech">
+            <span style="display:inline-flex;align-items:center;gap:10px">
+              <span class="skel chip"></span>
+              <span class="skel" style="width:${wt}%"></span>
+            </span>
+          </td>
+          <td class="status">
+            <span style="display:inline-flex;align-items:center;gap:9px">
+              <span class="skel mark"></span>
+              <span class="skel" style="width:${ws}%"></span>
+            </span>
+          </td>
+          <td class="chev"></td>
+        </tr>`;
+    }
+    body.innerHTML = html;
+  })();
+  if (window.lucide) window.lucide.createIcons();
+</script>
+</body>
+</html>

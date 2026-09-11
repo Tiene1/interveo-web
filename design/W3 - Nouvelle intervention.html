@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>W3 v4 — Nouvelle intervention · SIM</title>
+<meta name="viewport" content="width=1440">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.451.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root{
+    --brand:#2563EB; --brand-hover:#1D4ED8; --brand-dark:#1E3A8A;
+    --ink-1:#0F172A; --ink-2:#334155; --text-soft:#475569; --text-weak:#94A3B8;
+    --line:#E2E8F0; --line-strong:#CBD5E1; --line-soft:#EEF2F6;
+    --section:#F1F5F9; --surface:#FFFFFF;
+    --paper:#FBFBF9; --paper-soft:#F5F5F1; --zebra:#FCFCFA;
+    --success:#16A34A; --success-bg:#DCFCE7;
+    --warning:#D97706; --warning-bg:#FEF3C7;
+    --danger:#DC2626; --danger-bg:#FEE2E2;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--paper);color:var(--ink-1);
+    font-size:14px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;letter-spacing:-.003em;
+  }
+  ::selection{background:rgba(37,99,235,.14)}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* Canvas */
+  .canvas{padding:48px 24px 80px;display:flex;flex-direction:column;align-items:center;gap:56px;min-height:100vh}
+  .canvas-header{width:100%;max-width:1392px;display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+  .canvas-header h1{margin:0;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase}
+  .canvas-header .meta{font-size:12px;color:var(--text-weak);letter-spacing:.02em}
+  .variant-label{
+    display:flex;align-items:center;gap:10px;
+    font-size:10px;font-weight:600;color:var(--text-soft);
+    text-transform:uppercase;letter-spacing:.16em;
+    margin-bottom:14px;padding-left:2px;
+  }
+  .variant-label .dot{width:5px;height:5px;border-radius:1px;background:var(--success)}
+  .variant-label[data-state="error"] .dot{background:var(--danger)}
+
+  /* Frame */
+  .frame{
+    background:var(--paper);
+    border-top:2px solid var(--brand);
+    border-left:1px solid var(--line);
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    width:1440px;
+  }
+  .shell{display:grid;grid-template-columns:56px 1fr;min-height:960px}
+
+  /* Rail */
+  .rail{
+    background:var(--paper);
+    border-right:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;
+    padding:16px 0;gap:2px;
+  }
+  .rail-logo{
+    width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:600;font-size:16px;
+    color:var(--ink-1);letter-spacing:-.04em;margin-bottom:14px;
+    position:relative;
+  }
+  .rail-logo::after{
+    content:"";position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+    width:14px;height:1px;background:var(--brand);
+  }
+  .rail-item{
+    width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    color:var(--text-soft);cursor:pointer;border-radius:6px;
+    transition:background .12s ease, color .12s ease;position:relative;margin:2px 0;
+  }
+  .rail-item svg{width:18px;height:18px;stroke-width:1.6}
+  .rail-item:hover{background:var(--line-soft);color:var(--ink-1)}
+  .rail-item.active{color:var(--ink-1)}
+  .rail-item.active::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:2px;background:var(--ink-1);border-radius:0 1px 1px 0}
+  .rail-spacer{flex:1}
+  .rail-user{
+    width:28px;height:28px;border-radius:4px;background:var(--ink-1);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.02em;
+  }
+
+  /* Main */
+  .main{background:var(--paper);display:flex;flex-direction:column;min-width:0}
+  .date-strip{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 40px 0;color:var(--text-weak);
+    font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  }
+  .date-strip .now{font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:.02em;color:var(--text-soft);text-transform:none}
+
+  .page{max-width:1200px;margin:0 auto;width:100%;padding:32px 40px 48px}
+
+  .breadcrumb{
+    display:flex;align-items:center;gap:8px;
+    font-size:11px;font-weight:500;color:var(--text-weak);
+    letter-spacing:.06em;text-transform:uppercase;
+    margin-bottom:16px;
+  }
+  .breadcrumb a{color:var(--text-soft);text-decoration:none;cursor:pointer}
+  .breadcrumb a:hover{color:var(--ink-1)}
+  .breadcrumb .sep{color:var(--text-weak);opacity:.5}
+  .breadcrumb .current{color:var(--text-soft);font-weight:600}
+
+  .page-head{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+    margin-bottom:32px;
+  }
+  .page-head .left{display:flex;flex-direction:column;gap:12px}
+  .page-title{
+    font-family:'Fraunces',serif;
+    font-optical-sizing:auto;font-variation-settings:"SOFT" 30, "WONK" 0;
+    font-size:44px;font-weight:400;letter-spacing:-.035em;
+    line-height:1.05;margin:0;color:var(--ink-1);
+  }
+  .page-title .em{font-style:italic;font-weight:400}
+  .page-caption{
+    font-size:14px;color:var(--text-soft);line-height:1.5;max-width:640px;margin:0;
+  }
+
+  /* Form layout : 2 colonnes (labels à gauche, champs à droite) */
+  .form-section{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:48px;
+    padding:28px 0;
+    border-top:1px solid var(--line);
+  }
+  .form-section:first-of-type{border-top:1px solid var(--ink-1)}
+  .form-section .section-label{
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .form-section .section-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;font-weight:500;color:var(--text-weak);
+    letter-spacing:.02em;
+  }
+  .form-section .section-title{
+    font-family:'Fraunces',serif;
+    font-size:22px;font-weight:400;
+    letter-spacing:-.02em;line-height:1.15;
+    color:var(--ink-1);
+    margin:0;
+  }
+  .form-section .section-title .em{font-style:italic}
+  .form-section .section-desc{
+    font-size:13px;color:var(--text-soft);line-height:1.5;
+    max-width:180px;
+  }
+
+  .form-section .fields{
+    display:flex;flex-direction:column;gap:20px;
+    max-width:560px;
+  }
+
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .field label{
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;font-weight:600;color:var(--text-soft);
+    letter-spacing:.12em;text-transform:uppercase;
+  }
+  .field label .opt{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;font-weight:500;color:var(--text-weak);
+    text-transform:none;letter-spacing:.02em;
+  }
+  .field label .req{color:var(--danger);font-weight:600}
+
+  .input-wrap{
+    position:relative;
+    display:flex;align-items:center;gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid var(--line-strong);
+    transition:border-color .12s ease;
+  }
+  .input-wrap:focus-within{border-bottom-color:var(--ink-1)}
+  .input-wrap.error{border-bottom-color:var(--danger)}
+  .input-wrap svg.lead{width:14px;height:14px;stroke-width:1.75;color:var(--text-weak);flex-shrink:0}
+  .input-wrap input,
+  .input-wrap select{
+    flex:1;
+    border:none;background:transparent;outline:none;
+    font:inherit;font-size:16px;font-weight:500;
+    color:var(--ink-1);letter-spacing:-.005em;
+    padding:0;
+    -webkit-appearance:none;-moz-appearance:none;appearance:none;
+  }
+  .input-wrap input::placeholder{color:var(--text-weak);font-weight:400}
+  .input-wrap select{cursor:pointer}
+  .input-wrap select.placeholder{color:var(--text-weak)}
+  .input-wrap .chev{
+    color:var(--text-weak);
+    display:flex;align-items:center;pointer-events:none;
+  }
+  .input-wrap .chev svg{width:14px;height:14px;stroke-width:1.75}
+
+  .helper{
+    font-size:12px;color:var(--text-weak);
+    line-height:1.5;padding-top:2px;
+  }
+  .err-msg{
+    display:flex;align-items:center;gap:6px;
+    color:var(--danger);
+    font-size:12px;font-weight:500;
+    padding-top:4px;
+  }
+  .err-msg svg{width:12px;height:12px;stroke-width:2}
+
+  /* Error summary at top */
+  .error-summary{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:16px 20px;
+    background:var(--danger-bg);
+    border-left:2px solid var(--danger);
+    color:var(--danger);
+    font-size:13px;line-height:1.5;
+    margin-bottom:24px;
+  }
+  .error-summary svg{width:16px;height:16px;stroke-width:2;flex-shrink:0;margin-top:1px}
+  .error-summary strong{font-weight:600}
+  .error-summary ul{margin:6px 0 0 0;padding-left:16px;font-weight:500}
+  .error-summary li{margin:2px 0}
+
+  /* Form footer */
+  .form-footer{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:28px 0 0;
+    margin-top:8px;
+    border-top:1px solid var(--ink-1);
+  }
+  .form-footer .info{
+    font-size:12px;color:var(--text-weak);
+    letter-spacing:.02em;
+    display:flex;align-items:center;gap:12px;
+  }
+  .form-footer .info .dot-sep{color:var(--text-weak);opacity:.5}
+  .form-footer .actions{display:flex;align-items:center;gap:12px}
+
+  .btn{
+    height:40px;padding:0 18px;border-radius:6px;
+    border:1px solid transparent;
+    font:inherit;font-size:13px;font-weight:500;
+    cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    transition:background .12s ease, border-color .12s ease, color .12s ease;
+    white-space:nowrap;letter-spacing:-.003em;
+  }
+  .btn svg{width:14px;height:14px;stroke-width:1.75}
+  .btn-primary{background:var(--ink-1);color:#fff;border-color:var(--ink-1)}
+  .btn-primary:hover{background:#000}
+  .btn-secondary{background:transparent;border-color:var(--line);color:var(--ink-1)}
+  .btn-secondary:hover{background:var(--line-soft);border-color:var(--line-strong)}
+  .btn-ghost{background:transparent;color:var(--text-soft)}
+  .btn-ghost:hover{background:var(--line-soft);color:var(--ink-1)}
+
+</style>
+</head>
+<body>
+  <main class="canvas" data-screen-label="W3v4 Nouvelle intervention">
+
+    <header class="canvas-header">
+      <h1>W3 · v4 · Nouvelle intervention</h1>
+      <span class="meta">Formulaire éditorial 2 colonnes · 2 variantes</span>
+    </header>
+
+    <!-- ============================ (a) Vierge ============================ -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label"><span class="dot"></span>État : formulaire vierge</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip">
+              <div>SIM · Interventions</div>
+              <div class="now">Sam. 12 sept · 09:41</div>
+            </div>
+            <div class="page">
+
+              <div class="breadcrumb">
+                <a>Opérations</a>
+                <span class="sep">/</span>
+                <a>Interventions</a>
+                <span class="sep">/</span>
+                <span class="current">Nouvelle</span>
+              </div>
+
+              <div class="page-head">
+                <div class="left">
+                  <h1 class="page-title">Nouvelle <span class="em">intervention</span>.</h1>
+                  <p class="page-caption">
+                    Créez une intervention pour l'un de vos clients et
+                    attribuez-la à un technicien. Les champs marqués <span style="color:var(--danger)">*</span> sont requis.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Section 1: Client -->
+              <div class="form-section">
+                <div class="section-label">
+                  <div class="section-num">01</div>
+                  <h2 class="section-title"><span class="em">Client</span> et lieu</h2>
+                  <div class="section-desc">Coordonnées du site à intervenir.</div>
+                </div>
+                <div class="fields">
+                  <div class="field">
+                    <label>Nom du client <span class="req">*</span></label>
+                    <div class="input-wrap">
+                      <input type="text" placeholder="Ex. Hôtel Ivoire">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Adresse <span class="req">*</span></label>
+                    <div class="input-wrap">
+                      <i data-lucide="map-pin" class="lead"></i>
+                      <input type="text" placeholder="Boulevard Hassan II, Cocody">
+                    </div>
+                  </div>
+                  <div class="field-row">
+                    <div class="field">
+                      <label>Téléphone 1 <span class="req">*</span></label>
+                      <div class="input-wrap">
+                        <i data-lucide="phone" class="lead"></i>
+                        <input type="tel" placeholder="+225 07 07 07 07 07">
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Téléphone 2 <span class="opt">(optionnel)</span></label>
+                      <div class="input-wrap">
+                        <i data-lucide="phone" class="lead"></i>
+                        <input type="tel" placeholder="+225 07 07 07 07 07">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Géolocalisation <span class="opt">(optionnel)</span></label>
+                    <div class="input-wrap">
+                      <i data-lucide="map" class="lead"></i>
+                      <input type="text" placeholder="https://maps.google.com/…">
+                    </div>
+                    <div class="helper">Lien Google Maps ou coordonnées lat,lng.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: Planification -->
+              <div class="form-section">
+                <div class="section-label">
+                  <div class="section-num">02</div>
+                  <h2 class="section-title"><span class="em">Planification</span></h2>
+                  <div class="section-desc">Date, heure et technicien assigné.</div>
+                </div>
+                <div class="fields">
+                  <div class="field">
+                    <label>Date et heure prévues <span class="req">*</span></label>
+                    <div class="field-row">
+                      <div class="input-wrap">
+                        <i data-lucide="calendar" class="lead"></i>
+                        <input type="text" placeholder="12/09/2026">
+                      </div>
+                      <div class="input-wrap">
+                        <i data-lucide="clock" class="lead"></i>
+                        <input type="text" placeholder="09:00">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Technicien assigné <span class="req">*</span></label>
+                    <div class="input-wrap">
+                      <i data-lucide="user" class="lead"></i>
+                      <select class="placeholder">
+                        <option value="" selected disabled hidden>Choisir un technicien…</option>
+                        <option>Koffi N'Guessan</option>
+                        <option>Awa Traoré</option>
+                        <option>Serge Kouamé</option>
+                        <option>Ismaël Bakayoko</option>
+                      </select>
+                      <span class="chev"><i data-lucide="chevron-down"></i></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-footer">
+                <div class="info">
+                  <span>Statut initial : <strong style="color:var(--ink-1);font-weight:600">Planifiée</strong></span>
+                  <span class="dot-sep">·</span>
+                  <span>Créée le <span class="mono" style="color:var(--ink-1);font-weight:500">12/09/2026</span></span>
+                </div>
+                <div class="actions">
+                  <button class="btn btn-ghost" type="button">Annuler</button>
+                  <button class="btn btn-primary" type="button">
+                    Créer l'intervention
+                    <i data-lucide="arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ (b) Erreurs ============================ -->
+    <section style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:1440px"><div class="variant-label" data-state="error"><span class="dot"></span>État : erreurs de validation</div></div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="rail">
+            <div class="rail-logo">S</div>
+            <div class="rail-item active"><i data-lucide="list"></i></div>
+            <div class="rail-item"><i data-lucide="calendar"></i></div>
+            <div class="rail-item"><i data-lucide="users"></i></div>
+            <div class="rail-spacer"></div>
+            <div class="rail-item"><i data-lucide="settings"></i></div>
+            <div class="rail-user">KB</div>
+          </aside>
+          <div class="main">
+            <div class="date-strip">
+              <div>SIM · Interventions</div>
+              <div class="now">Sam. 12 sept · 09:41</div>
+            </div>
+            <div class="page">
+
+              <div class="breadcrumb">
+                <a>Opérations</a><span class="sep">/</span><a>Interventions</a><span class="sep">/</span><span class="current">Nouvelle</span>
+              </div>
+
+              <div class="page-head">
+                <div class="left">
+                  <h1 class="page-title">Nouvelle <span class="em">intervention</span>.</h1>
+                  <p class="page-caption">
+                    Créez une intervention pour l'un de vos clients et
+                    attribuez-la à un technicien. Les champs marqués <span style="color:var(--danger)">*</span> sont requis.
+                  </p>
+                </div>
+              </div>
+
+              <div class="error-summary" role="alert">
+                <i data-lucide="alert-circle"></i>
+                <div>
+                  <strong>3 champs requis à compléter</strong> avant de créer l'intervention&nbsp;:
+                  <ul>
+                    <li>Nom du client</li>
+                    <li>Adresse</li>
+                    <li>Technicien assigné</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <div class="section-label">
+                  <div class="section-num">01</div>
+                  <h2 class="section-title"><span class="em">Client</span> et lieu</h2>
+                  <div class="section-desc">Coordonnées du site à intervenir.</div>
+                </div>
+                <div class="fields">
+                  <div class="field">
+                    <label>Nom du client <span class="req">*</span></label>
+                    <div class="input-wrap error">
+                      <input type="text" placeholder="Ex. Hôtel Ivoire" aria-invalid="true">
+                    </div>
+                    <div class="err-msg"><i data-lucide="alert-circle"></i>Le nom du client est requis</div>
+                  </div>
+                  <div class="field">
+                    <label>Adresse <span class="req">*</span></label>
+                    <div class="input-wrap error">
+                      <i data-lucide="map-pin" class="lead"></i>
+                      <input type="text" placeholder="Boulevard Hassan II, Cocody" aria-invalid="true">
+                    </div>
+                    <div class="err-msg"><i data-lucide="alert-circle"></i>L'adresse est requise</div>
+                  </div>
+                  <div class="field-row">
+                    <div class="field">
+                      <label>Téléphone 1 <span class="req">*</span></label>
+                      <div class="input-wrap">
+                        <i data-lucide="phone" class="lead"></i>
+                        <input type="tel" value="+225 07 07 07 07 07">
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Téléphone 2 <span class="opt">(optionnel)</span></label>
+                      <div class="input-wrap">
+                        <i data-lucide="phone" class="lead"></i>
+                        <input type="tel" placeholder="+225 07 07 07 07 07">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Géolocalisation <span class="opt">(optionnel)</span></label>
+                    <div class="input-wrap">
+                      <i data-lucide="map" class="lead"></i>
+                      <input type="text" placeholder="https://maps.google.com/…">
+                    </div>
+                    <div class="helper">Lien Google Maps ou coordonnées lat,lng.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <div class="section-label">
+                  <div class="section-num">02</div>
+                  <h2 class="section-title"><span class="em">Planification</span></h2>
+                  <div class="section-desc">Date, heure et technicien assigné.</div>
+                </div>
+                <div class="fields">
+                  <div class="field">
+                    <label>Date et heure prévues <span class="req">*</span></label>
+                    <div class="field-row">
+                      <div class="input-wrap">
+                        <i data-lucide="calendar" class="lead"></i>
+                        <input type="text" value="12/09/2026">
+                      </div>
+                      <div class="input-wrap">
+                        <i data-lucide="clock" class="lead"></i>
+                        <input type="text" value="09:00">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Technicien assigné <span class="req">*</span></label>
+                    <div class="input-wrap error">
+                      <i data-lucide="user" class="lead"></i>
+                      <select class="placeholder" aria-invalid="true">
+                        <option value="" selected disabled hidden>Choisir un technicien…</option>
+                        <option>Koffi N'Guessan</option>
+                        <option>Awa Traoré</option>
+                        <option>Serge Kouamé</option>
+                        <option>Ismaël Bakayoko</option>
+                      </select>
+                      <span class="chev"><i data-lucide="chevron-down"></i></span>
+                    </div>
+                    <div class="err-msg"><i data-lucide="alert-circle"></i>Sélectionnez un technicien</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-footer">
+                <div class="info">
+                  <span>Statut initial : <strong style="color:var(--ink-1);font-weight:600">Planifiée</strong></span>
+                  <span class="dot-sep">·</span>
+                  <span>Créée le <span class="mono" style="color:var(--ink-1);font-weight:500">12/09/2026</span></span>
+                </div>
+                <div class="actions">
+                  <button class="btn btn-ghost" type="button">Annuler</button>
+                  <button class="btn btn-primary" type="button">
+                    Créer l'intervention
+                    <i data-lucide="arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+<script>
+  if (window.lucide) window.lucide.createIcons();
+</script>
+</body>
+</html>
