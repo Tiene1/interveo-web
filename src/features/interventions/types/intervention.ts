@@ -36,3 +36,18 @@ export interface Technicien {
   role: "TECHNICIEN" | "DIRECTEUR";
   actif: boolean;
 }
+
+export type CategoriePhoto = "AVANT" | "APRES";
+
+export interface Photo {
+  id: string;
+  interventionId: string;
+  categorie: CategoriePhoto;
+  cheminFichier: string;
+  creeLe: string;
+}
+
+export interface InterventionDetail extends Intervention {
+  photos: Photo[];
+  technicien: Technicien;
+}

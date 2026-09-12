@@ -49,7 +49,7 @@ describe("InterventionsTable", () => {
     render(<InterventionsTable interventions={[intervention]} techniciens={[technicien]} />);
 
     fireEvent.click(screen.getByText("Hôtel Ivoire"));
-    expect(push).toHaveBeenCalledWith(`/interventions/${intervention.id}`);
+    expect(push).toHaveBeenCalledWith(`/interventions/detail?id=${intervention.id}`);
   });
 
   it("affiche un tiret quand le technicien est inconnu", () => {

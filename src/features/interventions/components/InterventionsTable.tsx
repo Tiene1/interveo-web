@@ -46,7 +46,7 @@ export function InterventionsTable({ interventions, techniciens }: Interventions
         {interventions.map((intervention) => (
           <tr
             key={intervention.id}
-            onClick={() => router.push(`/interventions/${intervention.id}`)}
+            onClick={() => router.push(`/interventions/detail?id=${intervention.id}`)}
             className="group cursor-pointer transition-colors hover:bg-zebra"
           >
             <td className={`${TD_CLASSES} pl-0 font-mono text-[11px] text-text-weak`}>

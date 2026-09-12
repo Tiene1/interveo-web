@@ -46,7 +46,7 @@ web/
       interventions/
         page.tsx               (liste + filtres)
         nouvelle/page.tsx      (formulaire de création)
-        [id]/page.tsx          (détail)
+        detail/page.tsx        (détail, id lu via ?id= — voir note ci-dessous)
     features/
       auth/
         components/LoginForm.tsx
@@ -119,6 +119,13 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 - `output: 'export'` : build statique dans `out/`, servi par Nginx sur le VPS.
 - Pas de route API Next, pas de SSR, pas de server actions.
 - `NEXT_PUBLIC_API_URL` pointe vers l'API (même domaine, chemin `/api` routé par Nginx).
+- **Pas de route dynamique par segment de chemin** (`[id]`) : `output: 'export'` exige
+  `generateStaticParams()` connu au build, incompatible avec des identifiants
+  d'intervention créés en continu (testé : `next build` échoue même avec un
+  tableau vide). Le détail vit donc sur une route statique `interventions/detail`,
+  l'identifiant passé en paramètre de requête (`?id=`) et lu côté client
+  (`useSearchParams`, dans une limite `Suspense`). Même règle à appliquer si
+  d'autres écrans à identifiant dynamique s'ajoutent plus tard.
 
 ---
 
