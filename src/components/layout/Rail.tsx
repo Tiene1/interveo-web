@@ -6,7 +6,7 @@ const ITEM_CLASSES = "flex h-9 w-9 items-center justify-center rounded-md transi
 
 export function Rail() {
   return (
-    <aside className="flex flex-col items-center gap-1 border-r border-line bg-paper py-4">
+    <aside className="sticky top-0 flex h-screen shrink-0 flex-col items-center gap-1 overflow-hidden border-r border-line bg-paper py-4">
       <span className="mb-3.5 font-serif text-base font-semibold tracking-tight text-ink-1">S</span>
 
       <Link

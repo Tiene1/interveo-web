@@ -8,7 +8,7 @@ import { referenceCourte } from "../lib/reference";
 import type { Intervention, Technicien } from "../types/intervention";
 
 const TH_CLASSES =
-  "border-b border-line pb-3 pt-4 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-text-weak";
+  "sticky top-0 z-10 border-b border-line bg-paper pb-3 pt-4 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-text-weak";
 const TD_CLASSES = "border-b border-line-soft py-4 align-middle text-ink-1";
 
 function initiales(nom: string): string {
