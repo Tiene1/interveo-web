@@ -17,8 +17,7 @@ export function InterventionsTableSkeleton() {
     <table className="w-full border-collapse text-[13px]">
       <thead>
         <tr>
-          <th className={`${TH_CLASSES} w-[120px] pl-0`}>Réf.</th>
-          <th className={`${TH_CLASSES} w-[30%]`}>Client</th>
+          <th className={`${TH_CLASSES} w-[36%] pl-0`}>Client</th>
           <th className={`${TH_CLASSES} w-[170px]`}>Date prévue</th>
           <th className={`${TH_CLASSES} w-[20%]`}>Technicien</th>
           <th className={`${TH_CLASSES} w-[140px]`}>Statut</th>
@@ -29,9 +28,6 @@ export function InterventionsTableSkeleton() {
         {LARGEURS.map((largeur, index) => (
           <tr key={index} className="border-b border-line-soft">
             <td className="py-4 pl-0">
-              <Barre width="40px" />
-            </td>
-            <td className="py-4">
               <Barre width={`${largeur}%`} />
             </td>
             <td className="py-4">

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, RotateCw, XCircle } from "lucide-react";
+import { ArrowLeft, Pencil, RotateCw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { StatusChip } from "@/components/ui/StatusChip";
@@ -16,6 +16,18 @@ import type { Photo } from "../types/intervention";
 import { ConfirmationAnnulationModal } from "./ConfirmationAnnulationModal";
 import { PhotoLightbox } from "./PhotoLightbox";
 import { PhotoThumbnail } from "./PhotoThumbnail";
+
+function BoutonRetour() {
+  return (
+    <Link
+      href="/interventions"
+      className="mb-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-text-soft hover:text-ink-1"
+    >
+      <ArrowLeft size={14} strokeWidth={1.75} />
+      Retour
+    </Link>
+  );
+}
 
 function SideItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -66,22 +78,25 @@ export function InterventionDetail({ id }: { id: string }) {
 
   if (intervention.isError) {
     return (
-      <StatePanel
-        tone="danger"
-        kicker="Erreur de chargement"
-        title={
-          <>
-            Impossible de charger cette <span className="italic">intervention</span>.
-          </>
-        }
-        description="Une erreur est survenue lors de la récupération des données. Vérifiez votre connexion, puis réessayez."
-        actions={
-          <Button variant="secondary" size="sm" onClick={() => intervention.refetch()}>
-            <RotateCw size={14} strokeWidth={1.75} />
-            Réessayer
-          </Button>
-        }
-      />
+      <div>
+        <BoutonRetour />
+        <StatePanel
+          tone="danger"
+          kicker="Erreur de chargement"
+          title={
+            <>
+              Impossible de charger cette <span className="italic">intervention</span>.
+            </>
+          }
+          description="Une erreur est survenue lors de la récupération des données. Vérifiez votre connexion, puis réessayez."
+          actions={
+            <Button variant="secondary" size="sm" onClick={() => intervention.refetch()}>
+              <RotateCw size={14} strokeWidth={1.75} />
+              Réessayer
+            </Button>
+          }
+        />
+      </div>
     );
   }
 
@@ -92,6 +107,7 @@ export function InterventionDetail({ id }: { id: string }) {
 
   return (
     <div className="pb-16">
+      <BoutonRetour />
       <div className="mb-5 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.06em] text-text-weak">
         <Link href="/interventions" className="text-text-soft hover:text-ink-1">
           Opérations

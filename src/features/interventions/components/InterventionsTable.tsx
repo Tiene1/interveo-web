@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { formatDateTime } from "@/lib/utils/date";
-import { referenceCourte } from "../lib/reference";
 import type { Intervention, Technicien } from "../types/intervention";
 
 const TH_CLASSES =
@@ -34,8 +33,7 @@ export function InterventionsTable({ interventions, techniciens }: Interventions
     <table className="w-full border-collapse text-[13px]">
       <thead>
         <tr>
-          <th className={`${TH_CLASSES} w-[120px] pl-0`}>Réf.</th>
-          <th className={`${TH_CLASSES} w-[30%]`}>Client</th>
+          <th className={`${TH_CLASSES} w-[36%] pl-0`}>Client</th>
           <th className={`${TH_CLASSES} w-[170px]`}>Date prévue</th>
           <th className={`${TH_CLASSES} w-[20%]`}>Technicien</th>
           <th className={`${TH_CLASSES} w-[140px]`}>Statut</th>
@@ -49,10 +47,7 @@ export function InterventionsTable({ interventions, techniciens }: Interventions
             onClick={() => router.push(`/interventions/detail?id=${intervention.id}`)}
             className="group cursor-pointer transition-colors hover:bg-zebra"
           >
-            <td className={`${TD_CLASSES} pl-0 font-mono text-[11px] text-text-weak`}>
-              #{referenceCourte(intervention.id)}
-            </td>
-            <td className={TD_CLASSES}>
+            <td className={`${TD_CLASSES} pl-0`}>
               <span className="block text-sm font-semibold leading-tight text-ink-1">
                 {intervention.nomClient}
               </span>
