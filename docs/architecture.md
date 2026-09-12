@@ -22,8 +22,8 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 | US3.6 | Détail intervention | Client, lieu, motif, type d'équipement, problème, travaux, photos avant/après, technicien, dates |
 | US3.7 | Détail intervention | Vignette cliquable, photo en plein écran |
 | US1.7 | Détail intervention | Bouton Annuler + confirmation (autorisé si statut `PLANIFIEE`) |
-| US1.5 | Détail intervention → Modifier | Formulaire d'édition préempli (client, adresse, téléphones, géolocalisation, date/heure), autorisé si statut `PLANIFIEE` — **Nice to have promue** |
-| US1.6 | Détail intervention → Modifier | Réattribution à un autre technicien, même formulaire — **Nice to have promue** |
+| US1.5 | Détail intervention → Modifier | Formulaire d'édition préempli (client, adresse, téléphones, géolocalisation, date/heure), autorisé si statut `PLANIFIEE` (**Nice to have promue**) |
+| US1.6 | Détail intervention → Modifier | Réattribution à un autre technicien, même formulaire (**Nice to have promue**) |
 
 ---
 
@@ -48,7 +48,7 @@ web/
       interventions/
         page.tsx               (liste + filtres)
         nouvelle/page.tsx      (formulaire de création)
-        modifier/page.tsx      (formulaire d'édition, id lu via ?id= — même contrainte que detail/, US1.5/US1.6)
+        modifier/page.tsx      (formulaire d'édition, id lu via ?id=, même contrainte que detail/, US1.5/US1.6)
         detail/page.tsx        (détail, id lu via ?id= — voir note ci-dessous)
     features/
       auth/
@@ -141,3 +141,15 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 - Écrans de gestion des comptes techniciens (US4.5 à US4.9).
 - Champ « motif signalé » dans le formulaire, champ « type d'équipement ».
 - Toute consultation mobile pour M. Kouassi.
+
+---
+
+## 6. Icônes de la barre latérale (Rail)
+
+Décision du 2026-09-12, suite à un retour d'usage de Cédric. Trois icônes décoratives dans la maquette GenSpark, aucune ne correspond à un écran du MVP :
+
+| Icône | Statut | Justification |
+|---|---|---|
+| Calendrier | **Retirée** | Vérifié dans `Docs/SIM_Abidjan_UserStories_01-09-26.docx` : ne correspond à aucune des 39 User Stories, ni MVP ni Nice to have. Pure invention décorative GenSpark, aucun besoin réel derrière. |
+| Techniciens | Gardée, inerte | US4.5 à US4.9 (créer/lister/désactiver un compte technicien, réinitialiser un mot de passe). Nice to have, mais besoin opérationnel réel : aujourd'hui la seule façon de gérer les comptes techniciens est le script `prisma/seed.ts`, aucun moyen de le faire sans toucher au code. |
+| Paramètres | Gardée, inerte | Pas de User Story avant cette date. Ancrée sur **US4.8** (« changer son propre mot de passe », jamais rattachée à un écran auparavant), classée Nice to have. Pistes de réglages proposées par l'agent et à valider/décomposer par Cédric avant de devenir des User Stories formelles : nombre d'interventions par page (facile, actuellement fixé à 20 dans `PaginationDto`), coordonnées de l'entreprise pour les futurs exports PDF/CSV (US3.9/US3.10), durée de session avant déconnexion automatique (fixée en dur à 30 jours côté JWT backend), politique de conservation des photos (aucune limite aujourd'hui). Écarté : notifications email/SMS (infra hors périmètre MVP), personnalisation visuelle/logo, multi-comptes directeur, aucun besoin exprimé pour ces trois. |
