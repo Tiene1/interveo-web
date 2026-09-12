@@ -108,19 +108,8 @@ export function InterventionDetail({ id }: { id: string }) {
   return (
     <div className="pb-16">
       <BoutonRetour />
-      <div className="mb-5 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.06em] text-text-weak">
-        <Link href="/interventions" className="text-text-soft hover:text-ink-1">
-          Opérations
-        </Link>
-        <span className="opacity-50">/</span>
-        <Link href="/interventions" className="text-text-soft hover:text-ink-1">
-          Interventions
-        </Link>
-        <span className="opacity-50">/</span>
-        <span className="font-semibold text-text-soft">#{referenceCourte(data.id)}</span>
-      </div>
 
-      <div className="flex items-start justify-between gap-6 border-b border-ink-1 pb-6">
+      <div className="mt-4 flex items-start justify-between gap-6 border-b border-ink-1 pb-6">
         <div className="flex min-w-0 flex-1 flex-col gap-3.5">
           <div className="flex items-center gap-3.5 font-mono text-[11px] font-medium text-text-weak">
             <span>

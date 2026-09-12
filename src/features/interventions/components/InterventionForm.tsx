@@ -2,7 +2,6 @@
 
 import { useState, type InputHTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   AlertCircle,
   ArrowRight,
@@ -20,7 +19,6 @@ import { cn } from "@/lib/utils/cn";
 import { useCreerIntervention, type CreerInterventionPayload } from "../hooks/useCreerIntervention";
 import { useModifierIntervention } from "../hooks/useModifierIntervention";
 import { useTechniciens } from "../hooks/useTechniciens";
-import { referenceCourte } from "../lib/reference";
 import type { InterventionDetail } from "../types/intervention";
 
 interface ChampProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -201,28 +199,6 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
 
   return (
     <div className="h-full overflow-y-auto pb-16">
-      <div className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.06em] text-text-weak">
-        <Link href="/interventions" className="text-text-soft hover:text-ink-1">
-          Opérations
-        </Link>
-        <span className="opacity-50">/</span>
-        <Link href="/interventions" className="text-text-soft hover:text-ink-1">
-          Interventions
-        </Link>
-        <span className="opacity-50">/</span>
-        {estModification ? (
-          <>
-            <Link href={`/interventions/detail?id=${intervention.id}`} className="text-text-soft hover:text-ink-1">
-              #{referenceCourte(intervention.id)}
-            </Link>
-            <span className="opacity-50">/</span>
-            <span className="font-semibold text-text-soft">Modifier</span>
-          </>
-        ) : (
-          <span className="font-semibold text-text-soft">Nouvelle</span>
-        )}
-      </div>
-
       <div className="mb-8 flex flex-col gap-3">
         <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
           {estModification ? (

@@ -35,11 +35,6 @@ export function InterventionsListe() {
       <div className="shrink-0">
         <div className="mb-5 flex items-end justify-between gap-6">
           <div className="flex min-w-0 flex-1 flex-col gap-3">
-            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.06em] text-text-weak">
-              <span>Opérations</span>
-              <span className="opacity-50">/</span>
-              <span className="font-semibold text-text-soft">Interventions</span>
-            </div>
             <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
               Interventions<span className="italic">.</span>
             </h1>
