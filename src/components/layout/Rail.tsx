@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Calendar, List, Settings, Users } from "lucide-react";
+import { List, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const ITEM_CLASSES = "flex h-9 w-9 items-center justify-center rounded-md transition-colors";
@@ -16,9 +16,6 @@ export function Rail() {
       >
         <List size={18} strokeWidth={1.6} />
       </Link>
-      <span aria-hidden className={cn(ITEM_CLASSES, "cursor-default text-text-soft")}>
-        <Calendar size={18} strokeWidth={1.6} />
-      </span>
       <span aria-hidden className={cn(ITEM_CLASSES, "cursor-default text-text-soft")}>
         <Users size={18} strokeWidth={1.6} />
       </span>
