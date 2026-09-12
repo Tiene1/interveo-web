@@ -4,7 +4,7 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 
 - **Stack** : Next.js 14 (App Router), export statique, React Query, Tailwind.
 - **Utilisateur unique** : M. Kouassi, au bureau, en ligne. Pas d'offline.
-- **Périmètre** : les 10 User Stories MVP qui touchent le back-office.
+- **Périmètre** : les 10 User Stories MVP qui touchent le back-office, plus US1.5/US1.6 (Nice to have promues après livraison du MVP, cf. section 1).
 
 ---
 
@@ -22,6 +22,8 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 | US3.6 | Détail intervention | Client, lieu, motif, type d'équipement, problème, travaux, photos avant/après, technicien, dates |
 | US3.7 | Détail intervention | Vignette cliquable, photo en plein écran |
 | US1.7 | Détail intervention | Bouton Annuler + confirmation (autorisé si statut `PLANIFIEE`) |
+| US1.5 | Détail intervention → Modifier | Formulaire d'édition préempli (client, adresse, téléphones, géolocalisation, date/heure), autorisé si statut `PLANIFIEE` — **Nice to have promue** |
+| US1.6 | Détail intervention → Modifier | Réattribution à un autre technicien, même formulaire — **Nice to have promue** |
 
 ---
 
@@ -46,6 +48,7 @@ web/
       interventions/
         page.tsx               (liste + filtres)
         nouvelle/page.tsx      (formulaire de création)
+        modifier/page.tsx      (formulaire d'édition, id lu via ?id= — même contrainte que detail/, US1.5/US1.6)
         detail/page.tsx        (détail, id lu via ?id= — voir note ci-dessous)
     features/
       auth/
@@ -57,12 +60,13 @@ web/
       interventions/
         components/InterventionsTable.tsx
         components/InterventionFilters.tsx   (client, technicien)
-        components/InterventionForm.tsx      (création)
+        components/InterventionForm.tsx      (création et édition, mode 'creer' | 'modifier')
         components/InterventionDetail.tsx
         components/PhotoThumbnails.tsx
         hooks/useInterventions.ts            (query liste, filtres en paramètres)
         hooks/useIntervention.ts             (query détail)
         hooks/useCreateIntervention.ts       (mutation)
+        hooks/useModifierIntervention.ts     (mutation PATCH, US1.5/US1.6)
         hooks/useCancelIntervention.ts       (mutation)
         hooks/useTechniciens.ts              (query GET /utilisateurs)
         hooks/usePhoto.ts                    (fetch blob avec le JWT)
@@ -110,10 +114,11 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 ### Géolocalisation
 - Sur le détail, la géolocalisation est un lien qui ouvre Google Maps dans un nouvel onglet (`lib/utils/maps.ts` gère les deux formes : lien Google Maps collé tel quel, ou coordonnées `lat,lng`).
 
-### Formulaire de création
+### Formulaire de création et d'édition
 - Champs : nom du client, adresse, téléphone 1 (requis), téléphone 2 (optionnel), géolocalisation (optionnel), date et heure prévues, technicien (select).
 - **Pas de champ « motif signalé »** dans le MVP (US1.2 Nice to have).
 - **Pas de champ « type d'équipement »** (renseigné côté mobile, US2.4 Nice to have).
+- **Édition (US1.5/US1.6)** : mêmes champs, préremplis depuis l'intervention chargée. Bouton « Modifier » sur l'écran de détail, visible seulement si `PLANIFIEE` (même règle que l'annulation US1.7). `telephone2`/`geolocalisation` toujours envoyés au PATCH (même vides) : une chaîne vide efface explicitement le champ côté API, contrairement à la création où ces champs optionnels vides sont simplement omis du corps de la requête.
 
 ### Déploiement
 - `output: 'export'` : build statique dans `out/`, servi par Nginx sur le VPS.
@@ -131,7 +136,6 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 
 ## 5. Hors périmètre de l'app web pour le MVP
 
-- Modifier ou réattribuer une intervention (US1.5, US1.6).
 - Filtres période et état, recherche par mot-clé (US3.4, US3.5, US3.8).
 - Exports PDF et CSV (US3.9, US3.10).
 - Écrans de gestion des comptes techniciens (US4.5 à US4.9).
