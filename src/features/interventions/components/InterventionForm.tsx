@@ -7,6 +7,7 @@ import {
   AlertCircle,
   ArrowRight,
   Calendar,
+  Check,
   Clock,
   Map,
   MapPin,
@@ -16,8 +17,11 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
-import { useCreerIntervention } from "../hooks/useCreerIntervention";
+import { useCreerIntervention, type CreerInterventionPayload } from "../hooks/useCreerIntervention";
+import { useModifierIntervention } from "../hooks/useModifierIntervention";
 import { useTechniciens } from "../hooks/useTechniciens";
+import { referenceCourte } from "../lib/reference";
+import type { InterventionDetail } from "../types/intervention";
 
 interface ChampProps extends InputHTMLAttributes<HTMLInputElement> {
   icon?: LucideIcon;
@@ -98,6 +102,24 @@ const ETAT_INITIAL: FormState = {
   technicienId: "",
 };
 
+function pad(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function etatDepuisIntervention(intervention: InterventionDetail): FormState {
+  const date = new Date(intervention.datePrevue);
+  return {
+    nomClient: intervention.nomClient,
+    adresse: intervention.adresse,
+    telephone1: intervention.telephone1,
+    telephone2: intervention.telephone2 ?? "",
+    geolocalisation: intervention.geolocalisation ?? "",
+    date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+    heure: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
+    technicienId: intervention.technicienId,
+  };
+}
+
 const LIBELLES_CHAMPS: Record<string, string> = {
   nomClient: "Nom du client",
   adresse: "Adresse",
@@ -116,12 +138,21 @@ function valider(state: FormState): Record<string, string> {
   return erreurs;
 }
 
-export function NouvelleInterventionForm() {
+interface InterventionFormProps {
+  mode: "creer" | "modifier";
+  intervention?: InterventionDetail;
+}
+
+export function InterventionForm({ mode, intervention }: InterventionFormProps) {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(ETAT_INITIAL);
+  const [form, setForm] = useState<FormState>(() =>
+    intervention ? etatDepuisIntervention(intervention) : ETAT_INITIAL,
+  );
   const [erreurs, setErreurs] = useState<Record<string, string>>({});
   const techniciens = useTechniciens();
   const creer = useCreerIntervention();
+  const modifier = useModifierIntervention(intervention?.id ?? "");
+  const mutation = mode === "creer" ? creer : modifier;
 
   function champ<K extends keyof FormState>(cle: K) {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -134,23 +165,39 @@ export function NouvelleInterventionForm() {
     setErreurs(prochaine);
     if (Object.keys(prochaine).length > 0) return;
 
-    creer.mutate(
-      {
-        nomClient: form.nomClient.trim(),
-        adresse: form.adresse.trim(),
-        telephone1: form.telephone1.trim(),
+    const champsCommuns = {
+      nomClient: form.nomClient.trim(),
+      adresse: form.adresse.trim(),
+      telephone1: form.telephone1.trim(),
+      datePrevue: new Date(`${form.date}T${form.heure}:00`).toISOString(),
+      technicienId: form.technicienId,
+    };
+
+    if (mode === "creer") {
+      const payload: CreerInterventionPayload = {
+        ...champsCommuns,
         telephone2: form.telephone2.trim() || undefined,
         geolocalisation: form.geolocalisation.trim() || undefined,
-        datePrevue: new Date(`${form.date}T${form.heure}:00`).toISOString(),
-        technicienId: form.technicienId,
-      },
-      {
-        onSuccess: (intervention) => router.push(`/interventions/detail?id=${intervention.id}`),
-      },
+      };
+      creer.mutate(payload, {
+        onSuccess: (resultat) => router.push(`/interventions/detail?id=${resultat.id}`),
+      });
+      return;
+    }
+
+    // En modification, telephone2/geolocalisation sont toujours envoyes (meme
+    // vides) : une chaine vide efface explicitement le champ cote API.
+    modifier.mutate(
+      { ...champsCommuns, telephone2: form.telephone2.trim(), geolocalisation: form.geolocalisation.trim() },
+      { onSuccess: () => router.push(`/interventions/detail?id=${intervention!.id}`) },
     );
   }
 
-  const aujourdhui = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const estModification = mode === "modifier" && intervention;
+  const dateReference = estModification ? new Date(intervention.creeLe) : new Date();
+  const dateFormatee = dateReference.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const destinationAnnuler = estModification ? `/interventions/detail?id=${intervention.id}` : "/interventions";
+  const libelleAction = estModification ? "d'enregistrer les modifications" : "de créer l'intervention";
 
   return (
     <div className="h-full overflow-y-auto pb-16">
@@ -163,16 +210,36 @@ export function NouvelleInterventionForm() {
           Interventions
         </Link>
         <span className="opacity-50">/</span>
-        <span className="font-semibold text-text-soft">Nouvelle</span>
+        {estModification ? (
+          <>
+            <Link href={`/interventions/detail?id=${intervention.id}`} className="text-text-soft hover:text-ink-1">
+              #{referenceCourte(intervention.id)}
+            </Link>
+            <span className="opacity-50">/</span>
+            <span className="font-semibold text-text-soft">Modifier</span>
+          </>
+        ) : (
+          <span className="font-semibold text-text-soft">Nouvelle</span>
+        )}
       </div>
 
       <div className="mb-8 flex flex-col gap-3">
         <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
-          Nouvelle <span className="italic">intervention</span>.
+          {estModification ? (
+            <>
+              Modifier <span className="italic">l&apos;intervention</span>.
+            </>
+          ) : (
+            <>
+              Nouvelle <span className="italic">intervention</span>.
+            </>
+          )}
         </h1>
         <p className="max-w-[640px] text-sm leading-[1.5] text-text-soft">
-          Créez une intervention pour l&apos;un de vos clients et attribuez-la à un technicien. Les champs
-          marqués <span className="text-danger">*</span> sont requis.
+          {estModification
+            ? "Modifiez les informations de cette intervention. "
+            : "Créez une intervention pour l'un de vos clients et attribuez-la à un technicien. "}
+          Les champs marqués <span className="text-danger">*</span> sont requis.
         </p>
       </div>
 
@@ -185,7 +252,7 @@ export function NouvelleInterventionForm() {
                 {Object.keys(erreurs).length} champ{Object.keys(erreurs).length > 1 ? "s" : ""} requis à
                 compléter
               </strong>{" "}
-              avant de créer l&apos;intervention :
+              avant {libelleAction} :
               <ul className="ml-4 mt-1.5 list-disc font-medium">
                 {Object.keys(erreurs).map((cle) => (
                   <li key={cle}>{LIBELLES_CHAMPS[cle]}</li>
@@ -364,20 +431,29 @@ export function NouvelleInterventionForm() {
         <div className="mt-2 flex items-center justify-between border-t border-ink-1 pt-7">
           <div className="flex items-center gap-3 text-xs text-text-weak">
             <span>
-              Statut initial : <strong className="font-semibold text-ink-1">Planifiée</strong>
+              Statut{estModification ? "" : " initial"} : <strong className="font-semibold text-ink-1">Planifiée</strong>
             </span>
             <span className="opacity-50">·</span>
             <span>
-              Créée le <span className="font-mono font-medium text-ink-1">{aujourdhui}</span>
+              Créée le <span className="font-mono font-medium text-ink-1">{dateFormatee}</span>
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <Button type="button" variant="ghost" size="md" onClick={() => router.push("/interventions")}>
+            <Button type="button" variant="ghost" size="md" onClick={() => router.push(destinationAnnuler)}>
               Annuler
             </Button>
-            <Button type="submit" variant="primary" size="md" disabled={creer.isPending}>
-              Créer l&apos;intervention
-              <ArrowRight size={14} strokeWidth={1.75} />
+            <Button type="submit" variant="primary" size="md" disabled={mutation.isPending}>
+              {estModification ? (
+                <>
+                  Enregistrer les modifications
+                  <Check size={14} strokeWidth={1.75} />
+                </>
+              ) : (
+                <>
+                  Créer l&apos;intervention
+                  <ArrowRight size={14} strokeWidth={1.75} />
+                </>
+              )}
             </Button>
           </div>
         </div>

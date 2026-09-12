@@ -77,6 +77,15 @@ describe("InterventionDetail", () => {
 
     await screen.findByRole("heading", { level: 1, name: "Hôtel Ivoire" });
     expect(screen.queryByText("Annuler l'intervention")).not.toBeInTheDocument();
+    expect(screen.queryByText("Modifier")).not.toBeInTheDocument();
+  });
+
+  it("affiche un lien Modifier vers le formulaire d'edition quand le statut est Planifiee", async () => {
+    renderDetail();
+    await screen.findByRole("heading", { level: 1, name: "Hôtel Ivoire" });
+
+    const lien = screen.getByText("Modifier").closest("a");
+    expect(lien).toHaveAttribute("href", `/interventions/modifier?id=${intervention.id}`);
   });
 
   it("ouvre la modale de confirmation et declenche l'annulation", async () => {

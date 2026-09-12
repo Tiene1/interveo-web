@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { RotateCw, XCircle } from "lucide-react";
+import { Pencil, RotateCw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { StatusChip } from "@/components/ui/StatusChip";
@@ -151,10 +151,18 @@ export function InterventionDetail({ id }: { id: string }) {
           </div>
         </div>
         {peutAnnuler && (
-          <Button variant="danger-outline" size="sm" onClick={() => setModaleOuverte(true)}>
-            <XCircle size={14} strokeWidth={1.75} />
-            Annuler l&apos;intervention
-          </Button>
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <Link href={`/interventions/modifier?id=${data.id}`}>
+              <Button variant="secondary" size="sm">
+                <Pencil size={14} strokeWidth={1.75} />
+                Modifier
+              </Button>
+            </Link>
+            <Button variant="danger-outline" size="sm" onClick={() => setModaleOuverte(true)}>
+              <XCircle size={14} strokeWidth={1.75} />
+              Annuler l&apos;intervention
+            </Button>
+          </div>
         )}
       </div>
 
