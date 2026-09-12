@@ -5,16 +5,29 @@ import Link from "next/link";
 import { Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
+import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
 import { useInterventions } from "../hooks/useInterventions";
 import { useTechniciens } from "../hooks/useTechniciens";
+import { InterventionsFiltres } from "./InterventionsFiltres";
 import { InterventionsTable } from "./InterventionsTable";
 import { InterventionsTableSkeleton } from "./InterventionsTableSkeleton";
 import { InterventionsPagination } from "./InterventionsPagination";
 
 export function InterventionsListe() {
   const [page, setPage] = useState(1);
-  const interventions = useInterventions({ page });
+  const [client, setClient] = useState("");
+  const [technicienId, setTechnicienId] = useState("");
+  const clientDebounce = useDebouncedValue(client);
+  const filtreActif = client !== "" || technicienId !== "";
+
+  const interventions = useInterventions({ page, client: clientDebounce, technicienId });
   const techniciens = useTechniciens();
+
+  function reinitialiserFiltres() {
+    setClient("");
+    setTechnicienId("");
+    setPage(1);
+  }
 
   return (
     <div>
@@ -45,6 +58,20 @@ export function InterventionsListe() {
         </div>
       </div>
 
+      <InterventionsFiltres
+        client={client}
+        onClientChange={(value) => {
+          setClient(value);
+          setPage(1);
+        }}
+        technicienId={technicienId}
+        onTechnicienIdChange={(value) => {
+          setTechnicienId(value);
+          setPage(1);
+        }}
+        techniciens={techniciens.data ?? []}
+      />
+
       {interventions.isPending && <InterventionsTableSkeleton />}
 
       {interventions.isError && (
@@ -66,7 +93,24 @@ export function InterventionsListe() {
         />
       )}
 
-      {interventions.data && interventions.data.data.length === 0 && (
+      {interventions.data && interventions.data.data.length === 0 && filtreActif && (
+        <StatePanel
+          kicker="Aucun résultat"
+          title={
+            <>
+              Aucune intervention ne correspond <span className="italic">à ces filtres</span>.
+            </>
+          }
+          description="Essayez un autre nom de client ou un autre technicien."
+          actions={
+            <Button variant="secondary" size="sm" onClick={reinitialiserFiltres}>
+              Réinitialiser les filtres
+            </Button>
+          }
+        />
+      )}
+
+      {interventions.data && interventions.data.data.length === 0 && !filtreActif && (
         <StatePanel
           kicker="Aucune donnée"
           title={

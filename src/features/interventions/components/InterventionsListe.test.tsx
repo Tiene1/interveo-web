@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/lib/api/query-client";
@@ -92,6 +92,55 @@ describe("InterventionsListe", () => {
     renderListe();
 
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText("Koffi N'Guessan")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("Koffi N'Guessan").length).toBeGreaterThan(0));
+  });
+
+  it("affiche un message distinct quand un filtre ne trouve aucun resultat", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string) => {
+      if (path.startsWith("/interventions")) {
+        const filtre = path.includes("client=");
+        return Promise.resolve(
+          filtre
+            ? { data: [], total: 0, page: 1, limit: 20 }
+            : {
+                data: [
+                  {
+                    id: "3915b537-5d7a-40b7-be54-87578e11be91",
+                    nomClient: "Hôtel Ivoire",
+                    adresse: "Boulevard Hassan II, Cocody",
+                    telephone1: "+2250700000001",
+                    telephone2: null,
+                    geolocalisation: null,
+                    motifSignale: null,
+                    datePrevue: "2026-09-14T09:00:00.000Z",
+                    technicienId: "tech-1",
+                    creeParId: "directeur-1",
+                    typeEquipement: null,
+                    problemeConstate: null,
+                    travauxRealises: null,
+                    statut: "PLANIFIEE",
+                    dateRealisation: null,
+                    creeLe: "2026-09-10T00:00:00.000Z",
+                    misAJourLe: "2026-09-10T00:00:00.000Z",
+                  },
+                ],
+                total: 1,
+                page: 1,
+                limit: 20,
+              },
+        );
+      }
+      return Promise.resolve([]);
+    });
+
+    renderListe();
+    expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Filtrer par nom de client"), {
+      target: { value: "introuvable" },
+    });
+
+    expect(await screen.findByText(/ne correspond/, {}, { timeout: 2000 })).toBeInTheDocument();
+    expect(screen.getByText("Réinitialiser les filtres")).toBeInTheDocument();
   });
 });
