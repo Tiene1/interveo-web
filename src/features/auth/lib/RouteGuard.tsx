@@ -2,15 +2,15 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { getToken } from "./token";
+import { hasValidSession } from "./token";
 
-/** Enveloppe les pages protegees : redirige vers /connexion si aucun jeton n'est present. */
+/** Enveloppe les pages protegees : redirige vers /connexion si le jeton est absent ou expire. */
 export function RouteGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [autorise, setAutorise] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) {
+    if (!hasValidSession()) {
       router.replace("/connexion");
       return;
     }
