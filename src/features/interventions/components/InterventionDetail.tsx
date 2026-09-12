@@ -14,6 +14,7 @@ import { useIntervention } from "../hooks/useIntervention";
 import { referenceCourte } from "../lib/reference";
 import type { Photo } from "../types/intervention";
 import { ConfirmationAnnulationModal } from "./ConfirmationAnnulationModal";
+import { PhotoLightbox } from "./PhotoLightbox";
 import { PhotoThumbnail } from "./PhotoThumbnail";
 
 function SideItem({ label, children }: { label: string; children: React.ReactNode }) {
@@ -32,7 +33,7 @@ function SousSectionPhotos({
 }: {
   titre: string;
   photos: Photo[];
-  onOuvrir: (photoId: string) => void;
+  onOuvrir: (index: number) => void;
 }) {
   return (
     <div className="flex flex-col gap-2 border-t border-line-soft pt-5 first:border-none first:pt-0">
@@ -45,7 +46,7 @@ function SousSectionPhotos({
       ) : (
         <div className="mt-1 flex flex-wrap gap-2.5">
           {photos.map((photo, index) => (
-            <PhotoThumbnail key={photo.id} photo={photo} numero={index + 1} onClick={() => onOuvrir(photo.id)} />
+            <PhotoThumbnail key={photo.id} photo={photo} numero={index + 1} onClick={() => onOuvrir(index)} />
           ))}
         </div>
       )}
@@ -55,6 +56,7 @@ function SousSectionPhotos({
 
 export function InterventionDetail({ id }: { id: string }) {
   const [modaleOuverte, setModaleOuverte] = useState(false);
+  const [lightbox, setLightbox] = useState<{ photos: Photo[]; index: number } | null>(null);
   const intervention = useIntervention(id);
   const annuler = useAnnulerIntervention(id);
 
@@ -240,8 +242,16 @@ export function InterventionDetail({ id }: { id: string }) {
               <span className="font-mono text-[11px] font-medium text-text-weak">02</span>
             </div>
             <div className="flex flex-col gap-5">
-              <SousSectionPhotos titre="Avant" photos={photosAvant} onOuvrir={() => {}} />
-              <SousSectionPhotos titre="Après" photos={photosApres} onOuvrir={() => {}} />
+              <SousSectionPhotos
+                titre="Avant"
+                photos={photosAvant}
+                onOuvrir={(index) => setLightbox({ photos: photosAvant, index })}
+              />
+              <SousSectionPhotos
+                titre="Après"
+                photos={photosApres}
+                onOuvrir={(index) => setLightbox({ photos: photosApres, index })}
+              />
             </div>
           </section>
         </div>
@@ -257,6 +267,16 @@ export function InterventionDetail({ id }: { id: string }) {
               onSuccess: () => setModaleOuverte(false),
             })
           }
+        />
+      )}
+
+      {lightbox && (
+        <PhotoLightbox
+          photos={lightbox.photos}
+          index={lightbox.index}
+          intervention={data}
+          onClose={() => setLightbox(null)}
+          onIndexChange={(index) => setLightbox({ photos: lightbox.photos, index })}
         />
       )}
     </div>
