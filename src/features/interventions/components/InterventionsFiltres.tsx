@@ -33,13 +33,13 @@ export function InterventionsFiltres({
           />
         </div>
 
-        <label className="flex items-center gap-1.5 text-[13px] font-medium">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[13px] font-medium">
           <span className="font-medium text-text-weak">Technicien</span>
           <select
             value={technicienId}
             onChange={(event) => onTechnicienIdChange(event.target.value)}
             aria-label="Filtrer par technicien"
-            className="border-0 bg-transparent font-semibold text-ink-1 focus:outline-none"
+            className="cursor-pointer border-0 bg-transparent font-semibold text-ink-1 focus:outline-none"
           >
             <option value="">Tous</option>
             {techniciens.map((technicien) => (
