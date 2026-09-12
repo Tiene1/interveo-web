@@ -71,7 +71,11 @@ export function InterventionsListe() {
       </div>
 
       {/* Zone scrollable : uniquement la liste */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        className={`min-h-0 flex-1 overflow-y-auto transition-opacity ${
+          interventions.isFetching && !interventions.isPending ? "opacity-50" : ""
+        }`}
+      >
         {interventions.isPending && <InterventionsTableSkeleton />}
 
         {interventions.isError && (
@@ -146,6 +150,7 @@ export function InterventionsListe() {
             limit={interventions.data.limit}
             total={interventions.data.total}
             onPageChange={setPage}
+            disabled={interventions.isFetching}
           />
         </div>
       )}

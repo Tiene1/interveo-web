@@ -16,4 +16,10 @@ describe("InterventionsPagination", () => {
     fireEvent.click(screen.getByText("Suivant"));
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
+
+  it("desactive Precedent et Suivant pendant un chargement, meme sur une page intermediaire", () => {
+    render(<InterventionsPagination page={2} limit={2} total={10} onPageChange={vi.fn()} disabled />);
+    expect(screen.getByText("Précédent")).toBeDisabled();
+    expect(screen.getByText("Suivant")).toBeDisabled();
+  });
 });

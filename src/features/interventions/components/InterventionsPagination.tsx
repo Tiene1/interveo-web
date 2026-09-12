@@ -5,9 +5,10 @@ interface InterventionsPaginationProps {
   limit: number;
   total: number;
   onPageChange: (page: number) => void;
+  disabled?: boolean;
 }
 
-export function InterventionsPagination({ page, limit, total, onPageChange }: InterventionsPaginationProps) {
+export function InterventionsPagination({ page, limit, total, onPageChange, disabled }: InterventionsPaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const debut = total === 0 ? 0 : (page - 1) * limit + 1;
   const fin = Math.min(page * limit, total);
@@ -23,7 +24,7 @@ export function InterventionsPagination({ page, limit, total, onPageChange }: In
       <div className="flex items-center gap-0.5">
         <button
           type="button"
-          disabled={page <= 1}
+          disabled={page <= 1 || disabled}
           onClick={() => onPageChange(page - 1)}
           className="inline-flex h-7 items-center gap-1 rounded px-2 font-medium text-text-soft transition-colors hover:enabled:bg-line-soft hover:enabled:text-ink-1 disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -37,7 +38,7 @@ export function InterventionsPagination({ page, limit, total, onPageChange }: In
         </span>
         <button
           type="button"
-          disabled={page >= totalPages}
+          disabled={page >= totalPages || disabled}
           onClick={() => onPageChange(page + 1)}
           className="inline-flex h-7 items-center gap-1 rounded px-2 font-medium text-text-soft transition-colors hover:enabled:bg-line-soft hover:enabled:text-ink-1 disabled:cursor-not-allowed disabled:opacity-50"
         >

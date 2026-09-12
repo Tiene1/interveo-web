@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api/client";
 import type { PageInterventions } from "../types/intervention";
 
@@ -18,5 +18,6 @@ export function useInterventions(filtre: InterventionsFiltre = {}) {
   return useQuery({
     queryKey: ["interventions", filtre],
     queryFn: () => apiRequest<PageInterventions>(`/interventions${query ? `?${query}` : ""}`),
+    placeholderData: keepPreviousData,
   });
 }
