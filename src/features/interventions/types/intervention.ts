@@ -27,6 +27,7 @@ export interface PageInterventions {
   total: number;
   page: number;
   limit: number;
+  parStatut: Record<InterventionStatut, number>;
 }
 
 export interface Technicien {

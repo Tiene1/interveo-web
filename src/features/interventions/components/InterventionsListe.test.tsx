@@ -30,7 +30,13 @@ describe("InterventionsListe", () => {
   it("affiche l'etat vide quand la liste est vide", async () => {
     vi.mocked(apiRequest).mockImplementation((path: string) => {
       if (path.startsWith("/interventions")) {
-        return Promise.resolve({ data: [], total: 0, page: 1, limit: 20 });
+        return Promise.resolve({
+          data: [],
+          total: 0,
+          page: 1,
+          limit: 20,
+          parStatut: { PLANIFIEE: 0, REALISEE: 0, ANNULEE: 0 },
+        });
       }
       return Promise.resolve([]);
     });
@@ -82,6 +88,7 @@ describe("InterventionsListe", () => {
           total: 1,
           page: 1,
           limit: 20,
+          parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
         });
       }
       return Promise.resolve([
@@ -95,13 +102,41 @@ describe("InterventionsListe", () => {
     await waitFor(() => expect(screen.getAllByText("Koffi N'Guessan").length).toBeGreaterThan(0));
   });
 
+  it("affiche la repartition par statut dans la legende", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string) => {
+      if (path.startsWith("/interventions")) {
+        return Promise.resolve({
+          data: [],
+          total: 9,
+          page: 1,
+          limit: 20,
+          parStatut: { PLANIFIEE: 4, REALISEE: 3, ANNULEE: 2 },
+        });
+      }
+      return Promise.resolve([]);
+    });
+
+    renderListe();
+
+    expect(await screen.findByText(/4/)).toBeInTheDocument();
+    expect(screen.getByText(/planifiées/)).toBeInTheDocument();
+    expect(screen.getByText(/réalisées/)).toBeInTheDocument();
+    expect(screen.getByText(/annulées/)).toBeInTheDocument();
+  });
+
   it("affiche un message distinct quand un filtre ne trouve aucun resultat", async () => {
     vi.mocked(apiRequest).mockImplementation((path: string) => {
       if (path.startsWith("/interventions")) {
         const filtre = path.includes("client=");
         return Promise.resolve(
           filtre
-            ? { data: [], total: 0, page: 1, limit: 20 }
+            ? {
+                data: [],
+                total: 0,
+                page: 1,
+                limit: 20,
+                parStatut: { PLANIFIEE: 0, REALISEE: 0, ANNULEE: 0 },
+              }
             : {
                 data: [
                   {
@@ -127,6 +162,7 @@ describe("InterventionsListe", () => {
                 total: 1,
                 page: 1,
                 limit: 20,
+                parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
               },
         );
       }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, RotateCw } from "lucide-react";
+import { ChevronDown, Filter, Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
@@ -33,19 +33,50 @@ export function InterventionsListe() {
     <div className="flex h-full flex-col">
       {/* Zone fixe : titre, légende, actions, filtres */}
       <div className="shrink-0">
+        <div className="mb-3 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.06em] text-text-weak">
+          <span>Opérations</span>
+          <span className="opacity-50">/</span>
+          <span className="font-semibold text-text-soft">Interventions</span>
+        </div>
+
         <div className="mb-5 flex items-end justify-between gap-6">
           <div className="flex min-w-0 flex-1 flex-col gap-3">
-            <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
-              Interventions<span className="italic">.</span>
-            </h1>
+            <div className="flex flex-wrap items-baseline gap-3.5">
+              <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
+                Interventions<span className="italic">.</span>
+              </h1>
+              {/* Selecteur de statut : pas encore fonctionnel (US3.4 Nice to
+                  have, hors perimetre MVP). Span inerte, meme convention que
+                  les icones Techniciens/Parametres du rail (Rail.tsx). */}
+              <span
+                aria-hidden
+                className="inline-flex cursor-default items-center gap-1 rounded-md py-1 pl-2.5 pr-2 text-[13px] font-medium text-text-soft"
+              >
+                Toutes
+                <ChevronDown size={14} strokeWidth={1.75} />
+              </span>
+            </div>
             {interventions.data && (
               <p className="max-w-[640px] text-sm leading-[1.5] text-text-soft">
                 <span className="font-semibold text-ink-1">{interventions.data.total}</span> interventions au
-                total, les plus récentes en premier.
+                total — <span className="font-semibold text-ink-1">{interventions.data.parStatut.PLANIFIEE}</span>{" "}
+                planifiées, <span className="font-semibold text-ink-1">{interventions.data.parStatut.REALISEE}</span>{" "}
+                réalisées, <span className="font-semibold text-ink-1">{interventions.data.parStatut.ANNULEE}</span>{" "}
+                annulées.
               </p>
             )}
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
+            {/* Bouton Filtres : pas encore fonctionnel (periode + mot-cle,
+                US3.4/3.5/3.8 Nice to have, hors perimetre MVP). Meme
+                convention inerte que le selecteur de statut ci-dessus. */}
+            <span
+              aria-hidden
+              className="inline-flex h-9 cursor-default items-center justify-center gap-2 rounded-md border border-line px-4 text-[13px] font-medium text-ink-1"
+            >
+              <Filter size={14} strokeWidth={1.75} />
+              Filtres
+            </span>
             <Link href="/interventions/nouvelle">
               <Button variant="primary" size="sm">
                 <Plus size={14} strokeWidth={1.75} />

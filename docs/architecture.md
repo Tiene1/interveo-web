@@ -132,6 +132,13 @@ Cédric a demandé le retrait des références courtes (`referenceCourte()`, ex.
 ### Bouton Retour étendu à la création et l'édition — 2026-09-14
 `BoutonRetour` existait déjà sur le détail (ajouté le 12/09), mais pas sur `InterventionForm.tsx` (création/édition) — demandé par Cédric. Promu en composant partagé `components/ui/BoutonRetour.tsx` (prend un `href` optionnel, `/interventions` par défaut). `InterventionForm.tsx` lui passe `destinationAnnuler` (déjà calculé pour le bouton « Annuler » du bas de page) : `/interventions` en création, `/interventions/detail?id=` en édition — même cible, deux affordances.
 
+### Fidélité du haut de page « Interventions » à la maquette W2 — 2026-09-14
+Cédric a insisté deux fois (capture de la maquette à l'appui) pour que le haut de `InterventionsListe.tsx` reprenne fidèlement `W2 - Liste interventions.html` — précision obtenue après clarification : **visuel uniquement**, pas de nouvelle fonctionnalité de filtrage/tri (même principe que les icônes inertes du rail, `Rail.tsx`).
+- Fil d'Ariane « Opérations / Interventions » restauré **sur cet écran seulement** (contrairement au détail/création/édition qui ont désormais un bouton Retour, la liste est la racine de la navigation, atteinte depuis le rail — pas de redondance ici, donc pas de contradiction avec le retrait du 12/09).
+- Sélecteur de statut « Toutes ⌄ » (à côté du titre) et bouton « Filtres » : `<span aria-hidden>` inertes (pas `<button>`), même convention que `Rail.tsx` — représentent US3.4/US3.5/US3.8 (filtre état/période, recherche mot-clé), Nice to have hors périmètre MVP, non construites.
+- « Trié par date prévue [S] » ajouté à `InterventionsFiltres.tsx` : le tri par date prévue, lui, **est** le comportement réel (US3.1) — texte honnête, pas inerte. La puce « S » (raccourci clavier dans la maquette) reste purement décorative, aucun raccourci branché.
+- **Légende avec vraie répartition par statut** (« X interventions au total — Y planifiées, Z réalisées, W annulées ») : contrairement aux éléments ci-dessus, ce n'était pas un simple habillage visuel — afficher des chiffres inventés aurait été trompeur. `GET /interventions` renvoie désormais `parStatut` (backend, commit `6484cee`), consommé directement dans la légende.
+
 ### Environnement de développement
 - **Serveur de dev sur le port 3001** (`next dev -p 3001`, `next start -p 3001`) — `next dev` démarre sur le port 3000 par défaut, en conflit avec le backend NestJS qui écoute déjà sur ce port en local. `NEXT_PUBLIC_API_URL` reste `http://localhost:3000` (celui du backend, inchangé).
 

@@ -92,4 +92,17 @@ describe("InterventionsFiltres", () => {
 
     expect(onTechnicienIdChange).toHaveBeenCalledWith("tech-1");
   });
+
+  it("affiche l indicateur de tri par date prevue", () => {
+    render(
+      <InterventionsFiltres
+        client=""
+        onClientChange={vi.fn()}
+        technicienId=""
+        onTechnicienIdChange={vi.fn()}
+        techniciens={[technicien]}
+      />,
+    );
+    expect(screen.getByText("date prévue")).toBeInTheDocument();
+  });
 });

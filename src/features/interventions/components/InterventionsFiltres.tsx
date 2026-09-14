@@ -59,6 +59,22 @@ export function InterventionsFiltres({
           </button>
         )}
       </div>
+
+      {/* Tri par colonne cliquable : pas encore construit (aucune User Story
+          associee). Le tri par date prevue, lui, est deja le comportement
+          reel (US3.1) : affiche a titre indicatif, la puce "S" est purement
+          decorative (raccourci non branche). */}
+      <div className="flex shrink-0 items-center gap-4 text-[13px] text-text-soft">
+        <span>
+          Trié par <strong className="font-semibold text-ink-1">date prévue</strong>
+        </span>
+        <span
+          aria-hidden
+          className="inline-flex items-center rounded bg-line-soft px-1.5 py-px font-mono text-[10px] text-text-soft"
+        >
+          S
+        </span>
+      </div>
     </div>
   );
 }
