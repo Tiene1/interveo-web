@@ -84,6 +84,7 @@ interface FormState {
   telephone1: string;
   telephone2: string;
   geolocalisation: string;
+  motifSignale: string;
   date: string;
   heure: string;
   technicienId: string;
@@ -95,6 +96,7 @@ const ETAT_INITIAL: FormState = {
   telephone1: "",
   telephone2: "",
   geolocalisation: "",
+  motifSignale: "",
   date: "",
   heure: "",
   technicienId: "",
@@ -112,6 +114,7 @@ function etatDepuisIntervention(intervention: InterventionDetail): FormState {
     telephone1: intervention.telephone1,
     telephone2: intervention.telephone2 ?? "",
     geolocalisation: intervention.geolocalisation ?? "",
+    motifSignale: intervention.motifSignale ?? "",
     date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
     heure: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
     technicienId: intervention.technicienId,
@@ -153,7 +156,7 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
   const mutation = mode === "creer" ? creer : modifier;
 
   function champ<K extends keyof FormState>(cle: K) {
-    return (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    return (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setForm((precedent) => ({ ...precedent, [cle]: event.target.value }));
   }
 
@@ -176,6 +179,7 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
         ...champsCommuns,
         telephone2: form.telephone2.trim() || undefined,
         geolocalisation: form.geolocalisation.trim() || undefined,
+        motifSignale: form.motifSignale.trim() || undefined,
       };
       creer.mutate(payload, {
         onSuccess: (resultat) => router.push(`/interventions/detail?id=${resultat.id}`),
@@ -183,10 +187,16 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
       return;
     }
 
-    // En modification, telephone2/geolocalisation sont toujours envoyes (meme
-    // vides) : une chaine vide efface explicitement le champ cote API.
+    // En modification, telephone2/geolocalisation/motifSignale sont toujours
+    // envoyes (meme vides) : une chaine vide efface explicitement le champ
+    // cote API.
     modifier.mutate(
-      { ...champsCommuns, telephone2: form.telephone2.trim(), geolocalisation: form.geolocalisation.trim() },
+      {
+        ...champsCommuns,
+        telephone2: form.telephone2.trim(),
+        geolocalisation: form.geolocalisation.trim(),
+        motifSignale: form.motifSignale.trim(),
+      },
       { onSuccess: () => router.push(`/interventions/detail?id=${intervention!.id}`) },
     );
   }
@@ -325,6 +335,21 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
                 onChange={champ("geolocalisation")}
               />
               <p className="text-xs text-text-weak">Lien Google Maps ou coordonnées lat,lng.</p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="motifSignale" optionnel>
+                Motif signalé
+              </Label>
+              <textarea
+                id="motifSignale"
+                rows={2}
+                placeholder="Ex. Climatiseur de la salle de conférence en panne"
+                value={form.motifSignale}
+                onChange={champ("motifSignale")}
+                className="w-full resize-none border-0 border-b border-line-strong bg-transparent py-2 text-[16px] font-medium text-ink-1 placeholder:font-normal placeholder:text-text-weak focus:border-ink-1 focus:outline-none"
+              />
+              <p className="text-xs text-text-weak">Ce que le client a signalé au téléphone, avant intervention.</p>
             </div>
           </div>
         </div>

@@ -28,7 +28,7 @@ const intervention: InterventionDetail = {
   telephone1: "+2250700000001",
   telephone2: "+2250700000002",
   geolocalisation: null,
-  motifSignale: null,
+  motifSignale: "Climatiseur en panne",
   datePrevue: "2026-09-14T09:00:00.000Z",
   technicienId: "tech-1",
   creeParId: "directeur-1",
@@ -88,6 +88,7 @@ describe("InterventionForm (creation)", () => {
     fireEvent.change(screen.getByLabelText(/Date et heure prévues/), { target: { value: "2026-09-20" } });
     fireEvent.change(document.getElementById("heure") as HTMLInputElement, { target: { value: "09:00" } });
     fireEvent.change(screen.getByLabelText(/Technicien assigné/), { target: { value: "tech-2" } });
+    fireEvent.change(screen.getByLabelText(/Motif signalé/), { target: { value: "Climatiseur en panne" } });
 
     fireEvent.click(screen.getByText("Créer l'intervention"));
 
@@ -96,7 +97,11 @@ describe("InterventionForm (creation)", () => {
         "/interventions",
         expect.objectContaining({
           method: "POST",
-          body: expect.objectContaining({ nomClient: "Hôtel Ivoire", technicienId: "tech-2" }),
+          body: expect.objectContaining({
+            nomClient: "Hôtel Ivoire",
+            technicienId: "tech-2",
+            motifSignale: "Climatiseur en panne",
+          }),
         }),
       ),
     );
@@ -119,6 +124,7 @@ describe("InterventionForm (modification)", () => {
     expect(screen.getByLabelText(/^Adresse/)).toHaveValue("Boulevard Hassan II, Cocody");
     expect(screen.getByLabelText(/Téléphone 1/)).toHaveValue("+2250700000001");
     expect(screen.getByLabelText(/Technicien assigné/)).toHaveValue("tech-1");
+    expect(screen.getByLabelText(/Motif signalé/)).toHaveValue("Climatiseur en panne");
     expect(screen.getByText("Enregistrer les modifications")).toBeInTheDocument();
   });
 
@@ -150,12 +156,15 @@ describe("InterventionForm (modification)", () => {
     await screen.findByText("Awa Traore", { exact: false });
 
     fireEvent.change(screen.getByLabelText(/Téléphone 2/), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText(/Motif signalé/), { target: { value: "" } });
     fireEvent.click(screen.getByText("Enregistrer les modifications"));
 
     await waitFor(() =>
       expect(vi.mocked(apiRequest)).toHaveBeenCalledWith(
         `/interventions/${intervention.id}`,
-        expect.objectContaining({ body: expect.objectContaining({ telephone2: "" }) }),
+        expect.objectContaining({
+          body: expect.objectContaining({ telephone2: "", motifSignale: "" }),
+        }),
       ),
     );
   });

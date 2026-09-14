@@ -8,6 +8,7 @@ export interface CreerInterventionPayload {
   telephone1: string;
   telephone2?: string;
   geolocalisation?: string;
+  motifSignale?: string;
   datePrevue: string;
   technicienId: string;
 }

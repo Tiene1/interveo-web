@@ -4,7 +4,7 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 
 - **Stack** : Next.js 14 (App Router), export statique, React Query, Tailwind.
 - **Utilisateur unique** : M. Kouassi, au bureau, en ligne. Pas d'offline.
-- **Périmètre** : les 10 User Stories MVP qui touchent le back-office, plus US1.5/US1.6 (Nice to have promues après livraison du MVP, cf. section 1).
+- **Périmètre** : les 10 User Stories MVP qui touchent le back-office, plus US1.5/US1.6/US1.2 (Nice to have promues après livraison du MVP, cf. section 1).
 
 ---
 
@@ -19,6 +19,7 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 | US1.1 | Nouvelle intervention | Nom du client, date et heure prévues, technicien |
 | US1.8 | Nouvelle intervention | Adresse, téléphone 1, téléphone 2 (optionnel), géolocalisation (optionnel) |
 | US1.3 | Nouvelle intervention | Liste déroulante technicien alimentée par `GET /utilisateurs?role=TECHNICIEN&actif=true` |
+| US1.2 | Nouvelle intervention / Modifier | Motif signalé (optionnel, textarea) (**Nice to have promue**) |
 | US3.6 | Détail intervention | Client, lieu, motif, type d'équipement, problème, travaux, photos avant/après, technicien, dates |
 | US3.7 | Détail intervention | Vignette cliquable, photo en plein écran |
 | US1.7 | Détail intervention | Bouton Annuler + confirmation (autorisé si statut `PLANIFIEE`) |
@@ -115,10 +116,10 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 - Sur le détail, la géolocalisation est un lien qui ouvre Google Maps dans un nouvel onglet (`lib/utils/maps.ts` gère les deux formes : lien Google Maps collé tel quel, ou coordonnées `lat,lng`).
 
 ### Formulaire de création et d'édition
-- Champs : nom du client, adresse, téléphone 1 (requis), téléphone 2 (optionnel), géolocalisation (optionnel), date et heure prévues, technicien (select).
-- **Pas de champ « motif signalé »** dans le MVP (US1.2 Nice to have).
+- Champs : nom du client, adresse, téléphone 1 (requis), téléphone 2 (optionnel), géolocalisation (optionnel), motif signalé (optionnel), date et heure prévues, technicien (select).
 - **Pas de champ « type d'équipement »** (renseigné côté mobile, US2.4 Nice to have).
-- **Édition (US1.5/US1.6)** : mêmes champs, préremplis depuis l'intervention chargée. Bouton « Modifier » sur l'écran de détail, visible seulement si `PLANIFIEE` (même règle que l'annulation US1.7). `telephone2`/`geolocalisation` toujours envoyés au PATCH (même vides) : une chaîne vide efface explicitement le champ côté API, contrairement à la création où ces champs optionnels vides sont simplement omis du corps de la requête.
+- **Édition (US1.5/US1.6)** : mêmes champs, préremplis depuis l'intervention chargée. Bouton « Modifier » sur l'écran de détail, visible seulement si `PLANIFIEE` (même règle que l'annulation US1.7). `telephone2`/`geolocalisation`/`motifSignale` toujours envoyés au PATCH (même vides) : une chaîne vide efface explicitement le champ côté API, contrairement à la création où ces champs optionnels vides sont simplement omis du corps de la requête.
+- **Motif signalé (US1.2) promu le 2026-09-14** : Cédric a remarqué, en testant le mobile, que « Motif signalé » s'affichait toujours « non renseigné » sur le détail (US2.2/US3.6) faute de tout moyen de le saisir — incohérence déjà actée sans correctif en Phase II (`docs/ADR.md` backend, incohérence n°2). Plutôt que de masquer l'affichage, US1.2 est promue comme US1.5/US1.6 l'ont été : `<textarea>` optionnel ajouté en fin de la section « Client et lieu » (pas de composant `Champ` réutilisé, celui-ci ne gère que `<input>` — la fonction `champ()` généralisée pour accepter aussi `HTMLTextAreaElement`). Backend : `motifSignale` était déjà accepté à la création (`CreateInterventionDto`), ajouté au PATCH (`PatchInterventionDto`, `interventions.service.ts`) avec la même sémantique « chaîne vide efface » que `telephone2`/`geolocalisation`.
 
 ### Déploiement
 - `output: 'export'` : build statique dans `out/`, servi par Nginx sur le VPS.
