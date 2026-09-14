@@ -94,7 +94,7 @@ export function InterventionDetail({ id }: { id: string }) {
   const peutAnnuler = data.statut === "PLANIFIEE";
 
   return (
-    <div className="pb-16">
+    <div className="h-full overflow-y-auto pb-16">
       <BoutonRetour />
 
       <div className="mt-4 flex items-start justify-between gap-6 border-b border-ink-1 pb-6">
