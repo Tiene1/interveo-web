@@ -14,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { BoutonRetour } from "@/components/ui/BoutonRetour";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/utils/cn";
@@ -210,6 +211,7 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
 
   return (
     <div className="h-full overflow-y-auto pb-16">
+      <BoutonRetour href={destinationAnnuler} />
       <div className="mb-8 flex flex-col gap-3">
         <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
           {estModification ? (

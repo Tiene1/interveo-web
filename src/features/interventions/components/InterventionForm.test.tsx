@@ -118,6 +118,14 @@ describe("InterventionForm (creation)", () => {
     );
     await waitFor(() => expect(push).toHaveBeenCalledWith("/interventions/detail?id=nouvelle-id"));
   });
+
+  it("le bouton Retour pointe vers la liste en creation", async () => {
+    mockApi();
+    renderForm();
+    await attendreTechniciensCharges();
+
+    expect(screen.getByText("Retour").closest("a")).toHaveAttribute("href", "/interventions");
+  });
 });
 
 describe("InterventionForm (modification)", () => {
@@ -187,5 +195,16 @@ describe("InterventionForm (modification)", () => {
 
     fireEvent.click(screen.getByText("Annuler"));
     expect(push).toHaveBeenCalledWith(`/interventions/detail?id=${intervention.id}`);
+  });
+
+  it("le bouton Retour pointe vers le detail de l'intervention en modification", async () => {
+    mockApi();
+    renderForm({ mode: "modifier", intervention });
+    await attendreTechniciensCharges();
+
+    expect(screen.getByText("Retour").closest("a")).toHaveAttribute(
+      "href",
+      `/interventions/detail?id=${intervention.id}`,
+    );
   });
 });

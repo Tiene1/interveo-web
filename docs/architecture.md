@@ -129,6 +129,9 @@ Le `<select>` natif (filtre Technicien, champ Technicien assigné du formulaire)
 ### Référence courte (`lib/reference.ts`) retirée de l'affichage — 2026-09-14
 Cédric a demandé le retrait des références courtes (`referenceCourte()`, ex. `#0142`) partout où elles restaient visibles côté web : l'en-tête du détail (`InterventionDetail.tsx`, à côté de « Créée le … »), la lightbox photo (`PhotoLightbox.tsx`, à côté du nom du client) et la modale de confirmation d'annulation (`ConfirmationAnnulationModal.tsx`). Même raisonnement que le retrait déjà fait sur mobile (commit `5147612`) et sur la colonne « Réf. » du tableau liste (12/09) : sans utilité visuelle pour le directeur, qui identifie une intervention par le client et la date. Texte simplement retiré, rien ne le remplace. **`lib/reference.ts` (`referenceCourte()`) n'est plus appelé nulle part dans `src/`** — laissé en place (pas de suppression de fichier sans confirmation explicite), à supprimer si Cédric confirme.
 
+### Bouton Retour étendu à la création et l'édition — 2026-09-14
+`BoutonRetour` existait déjà sur le détail (ajouté le 12/09), mais pas sur `InterventionForm.tsx` (création/édition) — demandé par Cédric. Promu en composant partagé `components/ui/BoutonRetour.tsx` (prend un `href` optionnel, `/interventions` par défaut). `InterventionForm.tsx` lui passe `destinationAnnuler` (déjà calculé pour le bouton « Annuler » du bas de page) : `/interventions` en création, `/interventions/detail?id=` en édition — même cible, deux affordances.
+
 ### Environnement de développement
 - **Serveur de dev sur le port 3001** (`next dev -p 3001`, `next start -p 3001`) — `next dev` démarre sur le port 3000 par défaut, en conflit avec le backend NestJS qui écoute déjà sur ce port en local. `NEXT_PUBLIC_API_URL` reste `http://localhost:3000` (celui du backend, inchangé).
 

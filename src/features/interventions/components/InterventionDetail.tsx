@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Pencil, RotateCw, XCircle } from "lucide-react";
+import { Pencil, RotateCw, XCircle } from "lucide-react";
+import { BoutonRetour } from "@/components/ui/BoutonRetour";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { StatusChip } from "@/components/ui/StatusChip";
@@ -15,18 +16,6 @@ import type { Photo } from "../types/intervention";
 import { ConfirmationAnnulationModal } from "./ConfirmationAnnulationModal";
 import { PhotoLightbox } from "./PhotoLightbox";
 import { PhotoThumbnail } from "./PhotoThumbnail";
-
-function BoutonRetour() {
-  return (
-    <Link
-      href="/interventions"
-      className="mb-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-text-soft hover:text-ink-1"
-    >
-      <ArrowLeft size={14} strokeWidth={1.75} />
-      Retour
-    </Link>
-  );
-}
 
 function SideItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
