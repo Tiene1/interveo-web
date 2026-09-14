@@ -121,6 +121,9 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 - **Édition (US1.5/US1.6)** : mêmes champs, préremplis depuis l'intervention chargée. Bouton « Modifier » sur l'écran de détail, visible seulement si `PLANIFIEE` (même règle que l'annulation US1.7). `telephone2`/`geolocalisation`/`motifSignale` toujours envoyés au PATCH (même vides) : une chaîne vide efface explicitement le champ côté API, contrairement à la création où ces champs optionnels vides sont simplement omis du corps de la requête.
 - **Motif signalé (US1.2) promu le 2026-09-14** : Cédric a remarqué, en testant le mobile, que « Motif signalé » s'affichait toujours « non renseigné » sur le détail (US2.2/US3.6) faute de tout moyen de le saisir — incohérence déjà actée sans correctif en Phase II (`docs/ADR.md` backend, incohérence n°2). Plutôt que de masquer l'affichage, US1.2 est promue comme US1.5/US1.6 l'ont été : `<textarea>` optionnel ajouté en fin de la section « Client et lieu » (pas de composant `Champ` réutilisé, celui-ci ne gère que `<input>` — la fonction `champ()` généralisée pour accepter aussi `HTMLTextAreaElement`). Backend : `motifSignale` était déjà accepté à la création (`CreateInterventionDto`), ajouté au PATCH (`PatchInterventionDto`, `interventions.service.ts`) avec la même sémantique « chaîne vide efface » que `telephone2`/`geolocalisation`.
 
+### Environnement de développement
+- **Serveur de dev sur le port 3001** (`next dev -p 3001`, `next start -p 3001`) — `next dev` démarre sur le port 3000 par défaut, en conflit avec le backend NestJS qui écoute déjà sur ce port en local. `NEXT_PUBLIC_API_URL` reste `http://localhost:3000` (celui du backend, inchangé).
+
 ### Déploiement
 - `output: 'export'` : build statique dans `out/`, servi par Nginx sur le VPS.
 - Pas de route API Next, pas de SSR, pas de server actions.
@@ -140,7 +143,7 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 - Filtres période et état, recherche par mot-clé (US3.4, US3.5, US3.8).
 - Exports PDF et CSV (US3.9, US3.10).
 - Écrans de gestion des comptes techniciens (US4.5 à US4.9).
-- Champ « motif signalé » dans le formulaire, champ « type d'équipement ».
+- Champ « type d'équipement » dans le formulaire (US2.4 Nice to have, non promue).
 - Toute consultation mobile pour M. Kouassi.
 
 ---
