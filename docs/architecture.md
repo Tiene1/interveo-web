@@ -142,6 +142,9 @@ Cédric a insisté deux fois (capture de la maquette à l'appui) pour que le hau
 ### Détail scrollable — 2026-09-14
 Bug réel signalé par Cédric : `AppShell` (`components/layout/AppShell.tsx`) a `overflow-hidden` sur sa zone de contenu — chaque écran est responsable de son propre défilement interne. `InterventionForm.tsx` le fait déjà (`h-full overflow-y-auto`), mais `InterventionDetail.tsx` ne l'avait jamais eu : au-delà d'une certaine hauteur de contenu (plusieurs photos avant/après, champs longs), le bas de la page était purement inaccessible, pas juste caché derrière un scroll manquant. Corrigé en alignant `InterventionDetail.tsx` sur le même motif que `InterventionForm.tsx`.
 
+### Indicateur de survol sur la liste — 2026-09-14
+Demande de Cédric : un « sélecteur » plus visible au survol d'une ligne du tableau, en plus du simple changement de fond déjà présent (`hover:bg-zebra`). Barre verticale bleue (`--brand`, 2px) à gauche de la cellule Client, en `opacity-0 group-hover:opacity-100` — même langage visuel que l'état `.selected` de `W2 - Liste interventions.html` (accent bleu à gauche), mais déclenché par le survol plutôt qu'une sélection persistante (la liste n'a pas de concept de ligne sélectionnée).
+
 ### Environnement de développement
 - **Serveur de dev sur le port 3001** (`next dev -p 3001`, `next start -p 3001`) — `next dev` démarre sur le port 3000 par défaut, en conflit avec le backend NestJS qui écoute déjà sur ce port en local. `NEXT_PUBLIC_API_URL` reste `http://localhost:3000` (celui du backend, inchangé).
 

@@ -47,7 +47,11 @@ export function InterventionsTable({ interventions, techniciens }: Interventions
             onClick={() => router.push(`/interventions/detail?id=${intervention.id}`)}
             className="group cursor-pointer transition-colors hover:bg-zebra"
           >
-            <td className={`${TD_CLASSES} pl-0`}>
+            <td className={`${TD_CLASSES} relative pl-0`}>
+              <span
+                aria-hidden
+                className="absolute -left-2.5 top-0 bottom-0 w-0.5 bg-brand opacity-0 transition-opacity group-hover:opacity-100"
+              />
               <span className="block text-sm font-semibold leading-tight text-ink-1">
                 {intervention.nomClient}
               </span>
