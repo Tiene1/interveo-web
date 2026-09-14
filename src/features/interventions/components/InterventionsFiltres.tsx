@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { Select } from "@/components/ui/Select";
 import type { Technicien } from "../types/intervention";
 
 interface InterventionsFiltresProps {
@@ -33,22 +34,17 @@ export function InterventionsFiltres({
           />
         </div>
 
-        <label className="flex cursor-pointer items-center gap-1.5 text-[13px] font-medium">
-          <span className="font-medium text-text-weak">Technicien</span>
-          <select
-            value={technicienId}
-            onChange={(event) => onTechnicienIdChange(event.target.value)}
-            aria-label="Filtrer par technicien"
-            className="cursor-pointer border-0 bg-transparent font-semibold text-ink-1 focus:outline-none"
-          >
-            <option value="">Tous</option>
-            {techniciens.map((technicien) => (
-              <option key={technicien.id} value={technicien.id}>
-                {technicien.nom}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          variant="inline"
+          label="Technicien"
+          value={technicienId}
+          onChange={onTechnicienIdChange}
+          ariaLabel="Filtrer par technicien"
+          options={[
+            { value: "", label: "Tous" },
+            ...techniciens.map((technicien) => ({ value: technicien.id, label: technicien.nom })),
+          ]}
+        />
 
         {filtreActif && (
           <button

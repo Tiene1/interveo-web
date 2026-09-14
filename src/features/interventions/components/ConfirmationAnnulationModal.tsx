@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/Button";
 import { formatDateTime } from "@/lib/utils/date";
-import { referenceCourte } from "../lib/reference";
 import type { Intervention } from "../types/intervention";
 
 interface ConfirmationAnnulationModalProps {
@@ -39,8 +38,8 @@ export function ConfirmationAnnulationModal({
           être modifiée ni réactivée.
         </p>
         <div className="my-2 border-l-2 border-line-strong bg-line-soft px-3.5 py-3 font-mono text-xs text-text-weak">
-          <strong className="font-semibold text-ink-1">#{referenceCourte(intervention.id)}</strong> ·{" "}
-          {intervention.nomClient} · prévue le {formatDateTime(intervention.datePrevue)}
+          <strong className="font-semibold text-ink-1">{intervention.nomClient}</strong> · prévue le{" "}
+          {formatDateTime(intervention.datePrevue)}
         </div>
         <div className="mt-2 flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onCancel} disabled={isPending}>

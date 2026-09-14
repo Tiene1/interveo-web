@@ -59,6 +59,16 @@ function renderForm(props: Partial<React.ComponentProps<typeof InterventionForm>
   );
 }
 
+// Le select Technicien ne rend ses options que menu ouvert (Select maison,
+// cf. components/ui/Select.tsx) : on l'ouvre pour attendre que la liste des
+// techniciens (chargement asynchrone) soit bien arrivee, puis on referme
+// pour laisser le formulaire dans l'etat ferme attendu par la suite du test.
+async function attendreTechniciensCharges() {
+  fireEvent.click(screen.getByLabelText(/Technicien assigné/));
+  await screen.findByRole("option", { name: "Awa Traore" });
+  fireEvent.keyDown(screen.getByLabelText(/Technicien assigné/), { key: "Escape" });
+}
+
 describe("InterventionForm (creation)", () => {
   beforeEach(() => {
     vi.mocked(apiRequest).mockReset();
@@ -68,7 +78,7 @@ describe("InterventionForm (creation)", () => {
   it("affiche le recapitulatif des champs requis lorsque le formulaire est vide", async () => {
     mockApi();
     renderForm();
-    await screen.findByText("Awa Traore", { exact: false });
+    await attendreTechniciensCharges();
 
     fireEvent.click(screen.getByText("Créer l'intervention"));
 
@@ -80,14 +90,15 @@ describe("InterventionForm (creation)", () => {
   it("cree l'intervention et redirige vers le detail lorsque le formulaire est valide", async () => {
     mockApi({ id: "nouvelle-id" });
     renderForm();
-    await screen.findByText("Awa Traore", { exact: false });
+    await attendreTechniciensCharges();
 
     fireEvent.change(screen.getByLabelText(/Nom du client/), { target: { value: "Hôtel Ivoire" } });
     fireEvent.change(screen.getByLabelText(/^Adresse/), { target: { value: "Boulevard Hassan II" } });
     fireEvent.change(screen.getByLabelText(/Téléphone 1/), { target: { value: "+2250700000001" } });
     fireEvent.change(screen.getByLabelText(/Date et heure prévues/), { target: { value: "2026-09-20" } });
     fireEvent.change(document.getElementById("heure") as HTMLInputElement, { target: { value: "09:00" } });
-    fireEvent.change(screen.getByLabelText(/Technicien assigné/), { target: { value: "tech-2" } });
+    fireEvent.click(screen.getByLabelText(/Technicien assigné/));
+    fireEvent.click(await screen.findByRole("option", { name: "Awa Traore" }));
     fireEvent.change(screen.getByLabelText(/Motif signalé/), { target: { value: "Climatiseur en panne" } });
 
     fireEvent.click(screen.getByText("Créer l'intervention"));
@@ -118,12 +129,12 @@ describe("InterventionForm (modification)", () => {
   it("preremplit les champs avec les donnees actuelles de l'intervention", async () => {
     mockApi();
     renderForm({ mode: "modifier", intervention });
-    await screen.findByText("Awa Traore", { exact: false });
+    await attendreTechniciensCharges();
 
     expect(screen.getByLabelText(/Nom du client/)).toHaveValue("Hôtel Ivoire");
     expect(screen.getByLabelText(/^Adresse/)).toHaveValue("Boulevard Hassan II, Cocody");
     expect(screen.getByLabelText(/Téléphone 1/)).toHaveValue("+2250700000001");
-    expect(screen.getByLabelText(/Technicien assigné/)).toHaveValue("tech-1");
+    expect(screen.getByLabelText(/Technicien assigné/)).toHaveTextContent("Koffi N'Guessan");
     expect(screen.getByLabelText(/Motif signalé/)).toHaveValue("Climatiseur en panne");
     expect(screen.getByText("Enregistrer les modifications")).toBeInTheDocument();
   });
@@ -131,7 +142,7 @@ describe("InterventionForm (modification)", () => {
   it("envoie le PATCH avec les champs modifies et redirige vers le detail", async () => {
     mockApi({ ...intervention, nomClient: "Hôtel Ivoire Renove" });
     renderForm({ mode: "modifier", intervention });
-    await screen.findByText("Awa Traore", { exact: false });
+    await attendreTechniciensCharges();
 
     fireEvent.change(screen.getByLabelText(/Nom du client/), { target: { value: "Hôtel Ivoire Renove" } });
     fireEvent.click(screen.getByText("Enregistrer les modifications"));
@@ -153,7 +164,7 @@ describe("InterventionForm (modification)", () => {
   it("envoie une chaine vide pour effacer un champ optionnel vide", async () => {
     mockApi(intervention);
     renderForm({ mode: "modifier", intervention });
-    await screen.findByText("Awa Traore", { exact: false });
+    await attendreTechniciensCharges();
 
     fireEvent.change(screen.getByLabelText(/Téléphone 2/), { target: { value: "" } });
     fireEvent.change(screen.getByLabelText(/Motif signalé/), { target: { value: "" } });
@@ -172,7 +183,7 @@ describe("InterventionForm (modification)", () => {
   it("le bouton Annuler ramene vers le detail de l'intervention", async () => {
     mockApi();
     renderForm({ mode: "modifier", intervention });
-    await screen.findByText("Awa Traore", { exact: false });
+    await attendreTechniciensCharges();
 
     fireEvent.click(screen.getByText("Annuler"));
     expect(push).toHaveBeenCalledWith(`/interventions/detail?id=${intervention.id}`);

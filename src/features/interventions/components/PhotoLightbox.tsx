@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { ChevronLeft, ChevronRight, Image as ImageIcon, X } from "lucide-react";
 import { formatDateTime } from "@/lib/utils/date";
 import { usePhotoUrl } from "../hooks/usePhotoUrl";
-import { referenceCourte } from "../lib/reference";
 import type { InterventionDetail, Photo } from "../types/intervention";
 
 interface PhotoLightboxProps {
@@ -33,10 +32,7 @@ export function PhotoLightbox({ photos, index, intervention, onClose, onIndexCha
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-30 flex flex-col bg-[#0A0E1A]">
       <div className="flex items-center justify-between px-8 py-5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/75">
         <div className="flex items-center gap-3 font-mono tracking-[0.04em]">
-          <span className="text-white/50">#</span>
-          <span className="font-semibold text-white">{referenceCourte(intervention.id)}</span>
-          <span className="text-white/30">·</span>
-          <span>{intervention.nomClient}</span>
+          <span className="font-semibold text-white">{intervention.nomClient}</span>
         </div>
         <button
           type="button"

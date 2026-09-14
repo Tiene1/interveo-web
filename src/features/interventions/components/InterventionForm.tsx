@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/utils/cn";
 import { useCreerIntervention, type CreerInterventionPayload } from "../hooks/useCreerIntervention";
 import { useModifierIntervention } from "../hooks/useModifierIntervention";
@@ -397,33 +398,19 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
               <Label htmlFor="technicienId" requis>
                 Technicien assigné
               </Label>
-              <div
-                className={cn(
-                  "flex items-center gap-2.5 border-b py-2",
-                  erreurs.technicienId ? "border-danger" : "border-line-strong focus-within:border-ink-1",
-                )}
-              >
-                <User size={14} strokeWidth={1.75} className="shrink-0 text-text-weak" />
-                <select
-                  id="technicienId"
-                  value={form.technicienId}
-                  onChange={champ("technicienId")}
-                  aria-invalid={Boolean(erreurs.technicienId)}
-                  className={cn(
-                    "w-full appearance-none border-0 bg-transparent text-[16px] font-medium focus:outline-none",
-                    form.technicienId ? "text-ink-1" : "text-text-weak",
-                  )}
-                >
-                  <option value="" disabled>
-                    Choisir un technicien…
-                  </option>
-                  {(techniciens.data ?? []).map((technicien) => (
-                    <option key={technicien.id} value={technicien.id} className="text-ink-1">
-                      {technicien.nom}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                id="technicienId"
+                icon={User}
+                value={form.technicienId}
+                onChange={(valeur) => setForm((precedent) => ({ ...precedent, technicienId: valeur }))}
+                placeholder="Choisir un technicien…"
+                error={Boolean(erreurs.technicienId)}
+                ariaLabel="Technicien assigné"
+                options={(techniciens.data ?? []).map((technicien) => ({
+                  value: technicien.id,
+                  label: technicien.nom,
+                }))}
+              />
               {erreurs.technicienId && <MessageErreur>{erreurs.technicienId}</MessageErreur>}
             </div>
           </div>

@@ -11,7 +11,6 @@ import { nonRenseigne } from "@/lib/utils/text";
 import { lienGoogleMaps } from "@/lib/utils/maps";
 import { useAnnulerIntervention } from "../hooks/useAnnulerIntervention";
 import { useIntervention } from "../hooks/useIntervention";
-import { referenceCourte } from "../lib/reference";
 import type { Photo } from "../types/intervention";
 import { ConfirmationAnnulationModal } from "./ConfirmationAnnulationModal";
 import { PhotoLightbox } from "./PhotoLightbox";
@@ -112,11 +111,6 @@ export function InterventionDetail({ id }: { id: string }) {
       <div className="mt-4 flex items-start justify-between gap-6 border-b border-ink-1 pb-6">
         <div className="flex min-w-0 flex-1 flex-col gap-3.5">
           <div className="flex items-center gap-3.5 font-mono text-[11px] font-medium text-text-weak">
-            <span>
-              <span>#</span>
-              <span className="font-semibold text-ink-1">{referenceCourte(data.id)}</span>
-            </span>
-            <span className="opacity-50">·</span>
             <span>Créée le {formatDateTime(data.creeLe)}</span>
           </div>
           <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">

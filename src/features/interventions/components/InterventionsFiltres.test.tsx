@@ -71,6 +71,25 @@ describe("InterventionsFiltres", () => {
         techniciens={[technicien]}
       />,
     );
+    fireEvent.click(screen.getByLabelText("Filtrer par technicien"));
     expect(screen.getByRole("option", { name: "Koffi N'Guessan" })).toBeInTheDocument();
+  });
+
+  it("selectionne un technicien au clic sur une option", () => {
+    const onTechnicienIdChange = vi.fn();
+    render(
+      <InterventionsFiltres
+        client=""
+        onClientChange={vi.fn()}
+        technicienId=""
+        onTechnicienIdChange={onTechnicienIdChange}
+        techniciens={[technicien]}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText("Filtrer par technicien"));
+    fireEvent.click(screen.getByRole("option", { name: "Koffi N'Guessan" }));
+
+    expect(onTechnicienIdChange).toHaveBeenCalledWith("tech-1");
   });
 });
