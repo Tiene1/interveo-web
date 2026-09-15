@@ -14,6 +14,7 @@ import { lienGoogleMaps } from "@/lib/utils/maps";
 import { useAnnulerIntervention } from "../hooks/useAnnulerIntervention";
 import { useIntervention } from "../hooks/useIntervention";
 import { useSupprimerIntervention } from "../hooks/useSupprimerIntervention";
+import { libelleTypeEquipement } from "../lib/typeEquipement";
 import type { Photo } from "../types/intervention";
 import { ConfirmationAnnulationModal } from "./ConfirmationAnnulationModal";
 import { ConfirmationSuppressionModal } from "./ConfirmationSuppressionModal";
@@ -211,7 +212,7 @@ export function InterventionDetail({ id }: { id: string }) {
             </SideItem>
             <SideItem label="Type d'équipement">
               <span className={data.typeEquipement ? undefined : "italic text-text-weak"}>
-                {nonRenseigne(data.typeEquipement)}
+                {data.typeEquipement ? libelleTypeEquipement(data.typeEquipement) : nonRenseigne(null)}
               </span>
             </SideItem>
           </div>

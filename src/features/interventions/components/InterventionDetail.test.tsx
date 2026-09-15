@@ -74,6 +74,14 @@ describe("InterventionDetail", () => {
     expect(screen.getAllByText("Aucune photo").length).toBe(2);
   });
 
+  it("affiche le libelle francais du type d'equipement plutot que la valeur brute", async () => {
+    renderDetail({ ...intervention, typeEquipement: "GROUPE_ELECTROGENE" });
+
+    await screen.findByRole("heading", { level: 1, name: "Hôtel Ivoire" });
+    expect(screen.getByText("Groupe électrogène")).toBeInTheDocument();
+    expect(screen.queryByText("GROUPE_ELECTROGENE")).not.toBeInTheDocument();
+  });
+
   it("affiche le bouton Annuler seulement si le statut est Planifiee", async () => {
     renderDetail({ ...intervention, statut: "REALISEE", dateRealisation: "2026-09-14T12:00:00.000Z" });
 

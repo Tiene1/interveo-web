@@ -12,6 +12,7 @@ import {
   MapPin,
   Phone,
   User,
+  Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { BoutonRetour } from "@/components/ui/BoutonRetour";
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils/cn";
 import { useCreerIntervention, type CreerInterventionPayload } from "../hooks/useCreerIntervention";
 import { useModifierIntervention } from "../hooks/useModifierIntervention";
 import { useTechniciens } from "../hooks/useTechniciens";
+import { OPTIONS_TYPE_EQUIPEMENT } from "../lib/typeEquipement";
 import type { InterventionDetail } from "../types/intervention";
 
 interface ChampProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -87,6 +89,7 @@ interface FormState {
   telephone2: string;
   geolocalisation: string;
   motifSignale: string;
+  typeEquipement: string;
   date: string;
   heure: string;
   technicienId: string;
@@ -99,6 +102,7 @@ const ETAT_INITIAL: FormState = {
   telephone2: "",
   geolocalisation: "",
   motifSignale: "",
+  typeEquipement: "",
   date: "",
   heure: "",
   technicienId: "",
@@ -117,6 +121,7 @@ function etatDepuisIntervention(intervention: InterventionDetail): FormState {
     telephone2: intervention.telephone2 ?? "",
     geolocalisation: intervention.geolocalisation ?? "",
     motifSignale: intervention.motifSignale ?? "",
+    typeEquipement: intervention.typeEquipement ?? "",
     date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
     heure: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
     technicienId: intervention.technicienId,
@@ -182,6 +187,7 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
         telephone2: form.telephone2.trim() || undefined,
         geolocalisation: form.geolocalisation.trim() || undefined,
         motifSignale: form.motifSignale.trim() || undefined,
+        typeEquipement: form.typeEquipement || undefined,
       };
       creer.mutate(payload, {
         onSuccess: (resultat) => router.push(`/interventions/detail?id=${resultat.id}`),
@@ -191,13 +197,15 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
 
     // En modification, telephone2/geolocalisation/motifSignale sont toujours
     // envoyes (meme vides) : une chaine vide efface explicitement le champ
-    // cote API.
+    // cote API. typeEquipement est un enum, pas de chaine vide possible :
+    // null explicite efface (cf. PatchInterventionDto cote backend).
     modifier.mutate(
       {
         ...champsCommuns,
         telephone2: form.telephone2.trim(),
         geolocalisation: form.geolocalisation.trim(),
         motifSignale: form.motifSignale.trim(),
+        typeEquipement: form.typeEquipement || null,
       },
       { onSuccess: () => router.push(`/interventions/detail?id=${intervention!.id}`) },
     );
@@ -353,6 +361,21 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
                 className="w-full resize-none border-0 border-b border-line-strong bg-transparent py-2 text-[16px] font-medium text-ink-1 placeholder:font-normal placeholder:text-text-weak focus:border-ink-1 focus:outline-none"
               />
               <p className="text-xs text-text-weak">Ce que le client a signalé au téléphone, avant intervention.</p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="typeEquipement" optionnel>
+                Type d&apos;équipement
+              </Label>
+              <Select
+                id="typeEquipement"
+                icon={Wrench}
+                value={form.typeEquipement}
+                onChange={(valeur) => setForm((precedent) => ({ ...precedent, typeEquipement: valeur }))}
+                placeholder="Non renseigné"
+                ariaLabel="Type d'équipement"
+                options={OPTIONS_TYPE_EQUIPEMENT}
+              />
             </div>
           </div>
         </div>

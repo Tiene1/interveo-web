@@ -126,6 +126,33 @@ describe("InterventionForm (creation)", () => {
 
     expect(screen.getByText("Retour").closest("a")).toHaveAttribute("href", "/interventions");
   });
+
+  it("envoie le type d'equipement choisi", async () => {
+    mockApi();
+    renderForm();
+    await attendreTechniciensCharges();
+
+    fireEvent.change(screen.getByLabelText(/Nom du client/), { target: { value: "Hôtel Ivoire" } });
+    fireEvent.change(screen.getByLabelText(/^Adresse/), { target: { value: "Boulevard Hassan II" } });
+    fireEvent.change(screen.getByLabelText(/Téléphone 1/), { target: { value: "+2250700000001" } });
+    fireEvent.change(screen.getByLabelText(/Date et heure prévues/), { target: { value: "2026-09-20" } });
+    fireEvent.change(document.getElementById("heure") as HTMLInputElement, { target: { value: "09:00" } });
+    fireEvent.click(screen.getByLabelText(/Technicien assigné/));
+    fireEvent.click(await screen.findByRole("option", { name: "Awa Traore" }));
+    fireEvent.click(screen.getByLabelText(/Type d'équipement/));
+    fireEvent.click(await screen.findByRole("option", { name: "Climatisation" }));
+
+    fireEvent.click(screen.getByText("Créer l'intervention"));
+
+    await waitFor(() =>
+      expect(vi.mocked(apiRequest)).toHaveBeenCalledWith(
+        "/interventions",
+        expect.objectContaining({
+          body: expect.objectContaining({ typeEquipement: "CLIMATISATION" }),
+        }),
+      ),
+    );
+  });
 });
 
 describe("InterventionForm (modification)", () => {
@@ -183,6 +210,33 @@ describe("InterventionForm (modification)", () => {
         `/interventions/${intervention.id}`,
         expect.objectContaining({
           body: expect.objectContaining({ telephone2: "", motifSignale: "" }),
+        }),
+      ),
+    );
+  });
+
+  it("preremplit le type d'equipement quand il est deja renseigne", async () => {
+    mockApi();
+    renderForm({ mode: "modifier", intervention: { ...intervention, typeEquipement: "GROUPE_ELECTROGENE" } });
+    await attendreTechniciensCharges();
+
+    expect(screen.getByLabelText(/Type d'équipement/)).toHaveTextContent("Groupe électrogène");
+  });
+
+  it("efface le type d'equipement (null explicite, pas une chaine vide)", async () => {
+    mockApi(intervention);
+    renderForm({ mode: "modifier", intervention: { ...intervention, typeEquipement: "CLIMATISATION" } });
+    await attendreTechniciensCharges();
+
+    fireEvent.click(screen.getByLabelText(/Type d'équipement/));
+    fireEvent.click(await screen.findByRole("option", { name: "Non renseigné" }));
+    fireEvent.click(screen.getByText("Enregistrer les modifications"));
+
+    await waitFor(() =>
+      expect(vi.mocked(apiRequest)).toHaveBeenCalledWith(
+        `/interventions/${intervention.id}`,
+        expect.objectContaining({
+          body: expect.objectContaining({ typeEquipement: null }),
         }),
       ),
     );
