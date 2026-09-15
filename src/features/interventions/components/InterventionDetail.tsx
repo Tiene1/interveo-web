@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, RotateCw, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Pencil, RotateCw, Trash2, XCircle } from "lucide-react";
 import { BoutonRetour } from "@/components/ui/BoutonRetour";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
@@ -12,8 +13,10 @@ import { nonRenseigne } from "@/lib/utils/text";
 import { lienGoogleMaps } from "@/lib/utils/maps";
 import { useAnnulerIntervention } from "../hooks/useAnnulerIntervention";
 import { useIntervention } from "../hooks/useIntervention";
+import { useSupprimerIntervention } from "../hooks/useSupprimerIntervention";
 import type { Photo } from "../types/intervention";
 import { ConfirmationAnnulationModal } from "./ConfirmationAnnulationModal";
+import { ConfirmationSuppressionModal } from "./ConfirmationSuppressionModal";
 import { PhotoLightbox } from "./PhotoLightbox";
 import { PhotoThumbnail } from "./PhotoThumbnail";
 
@@ -55,10 +58,13 @@ function SousSectionPhotos({
 }
 
 export function InterventionDetail({ id }: { id: string }) {
+  const router = useRouter();
   const [modaleOuverte, setModaleOuverte] = useState(false);
+  const [modaleSuppressionOuverte, setModaleSuppressionOuverte] = useState(false);
   const [lightbox, setLightbox] = useState<{ photos: Photo[]; index: number } | null>(null);
   const intervention = useIntervention(id);
   const annuler = useAnnulerIntervention(id);
+  const supprimer = useSupprimerIntervention(id);
 
   if (intervention.isPending) {
     return <p className="pt-10 text-sm text-text-soft">Chargement…</p>;
@@ -92,6 +98,7 @@ export function InterventionDetail({ id }: { id: string }) {
   const photosAvant = data.photos.filter((photo) => photo.categorie === "AVANT");
   const photosApres = data.photos.filter((photo) => photo.categorie === "APRES");
   const peutAnnuler = data.statut === "PLANIFIEE";
+  const peutSupprimer = data.statut === "ANNULEE";
 
   return (
     <div className="h-full overflow-y-auto pb-16">
@@ -149,6 +156,18 @@ export function InterventionDetail({ id }: { id: string }) {
             <Button variant="danger-outline" size="sm" onClick={() => setModaleOuverte(true)}>
               <XCircle size={14} strokeWidth={1.75} />
               Annuler l&apos;intervention
+            </Button>
+          </div>
+        )}
+        {peutSupprimer && (
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <Button
+              variant="danger-outline"
+              size="sm"
+              onClick={() => setModaleSuppressionOuverte(true)}
+            >
+              <Trash2 size={14} strokeWidth={1.75} />
+              Supprimer
             </Button>
           </div>
         )}
@@ -261,6 +280,19 @@ export function InterventionDetail({ id }: { id: string }) {
           onConfirm={() =>
             annuler.mutate(undefined, {
               onSuccess: () => setModaleOuverte(false),
+            })
+          }
+        />
+      )}
+
+      {modaleSuppressionOuverte && (
+        <ConfirmationSuppressionModal
+          intervention={data}
+          isPending={supprimer.isPending}
+          onCancel={() => setModaleSuppressionOuverte(false)}
+          onConfirm={() =>
+            supprimer.mutate(undefined, {
+              onSuccess: () => router.push("/interventions"),
             })
           }
         />

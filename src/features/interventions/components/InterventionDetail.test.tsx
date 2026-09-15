@@ -11,8 +11,9 @@ vi.mock("@/lib/api/client", () => ({
   apiFetchBlob: vi.fn().mockResolvedValue(new Blob()),
 }));
 
+const push = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
 }));
 
 const intervention: InterventionDetailType = {
@@ -61,6 +62,7 @@ function renderDetail(data: InterventionDetailType = intervention) {
 describe("InterventionDetail", () => {
   beforeEach(() => {
     vi.mocked(apiRequest).mockReset();
+    push.mockReset();
   });
 
   it("affiche le client, le technicien et les champs non renseignes", async () => {
@@ -104,5 +106,36 @@ describe("InterventionDetail", () => {
         expect.objectContaining({ method: "PATCH" }),
       ),
     );
+  });
+
+  it("affiche le bouton Supprimer seulement si le statut est Annulee", async () => {
+    renderDetail({ ...intervention, statut: "ANNULEE" });
+
+    await screen.findByRole("heading", { level: 1, name: "Hôtel Ivoire" });
+    expect(screen.getByText("Supprimer")).toBeInTheDocument();
+  });
+
+  it("n affiche pas le bouton Supprimer pour une intervention Planifiee ou Realisee", async () => {
+    renderDetail();
+    await screen.findByRole("heading", { level: 1, name: "Hôtel Ivoire" });
+    expect(screen.queryByText("Supprimer")).not.toBeInTheDocument();
+  });
+
+  it("ouvre la modale de confirmation et redirige vers la liste apres suppression", async () => {
+    renderDetail({ ...intervention, statut: "ANNULEE" });
+    await screen.findByRole("heading", { level: 1, name: "Hôtel Ivoire" });
+
+    fireEvent.click(screen.getByText("Supprimer"));
+    expect(await screen.findByText("Cette action est définitive et ne peut pas être annulée.", { exact: false })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Supprimer définitivement"));
+
+    await waitFor(() =>
+      expect(vi.mocked(apiRequest)).toHaveBeenCalledWith(
+        expect.stringContaining(`/interventions/${intervention.id}`),
+        expect.objectContaining({ method: "DELETE" }),
+      ),
+    );
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/interventions"));
   });
 });
