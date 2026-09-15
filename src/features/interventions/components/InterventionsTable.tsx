@@ -50,7 +50,7 @@ export function InterventionsTable({ interventions, techniciens }: Interventions
             <td className={`${TD_CLASSES} relative pl-0`}>
               <span
                 aria-hidden
-                className="absolute -left-2.5 top-0 bottom-0 w-0.5 bg-brand opacity-0 transition-opacity group-hover:opacity-100"
+                className="absolute -left-2.5 top-0 bottom-0 w-0.5 bg-line-strong opacity-0 transition-opacity group-hover:opacity-100"
               />
               <span className="block text-sm font-semibold leading-tight text-ink-1">
                 {intervention.nomClient}

@@ -41,10 +41,9 @@ export function Rail() {
         onClick={seDeconnecter}
         aria-label="Se déconnecter"
         title="Se déconnecter"
-        className="group mt-2 flex h-7 w-7 items-center justify-center rounded bg-ink-1 font-mono text-[10px] font-semibold text-white transition-colors hover:bg-danger"
+        className={cn(ITEM_CLASSES, "text-text-soft hover:bg-danger hover:text-white")}
       >
-        <span className="group-hover:hidden">KB</span>
-        <LogOut size={12} strokeWidth={2} className="hidden group-hover:block" />
+        <LogOut size={18} strokeWidth={1.6} />
       </button>
     </aside>
   );
