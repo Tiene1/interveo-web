@@ -145,8 +145,12 @@ Bug réel signalé par Cédric : `AppShell` (`components/layout/AppShell.tsx`) a
 ### Indicateur de survol sur la liste — 2026-09-14
 Demande de Cédric : un « sélecteur » plus visible au survol d'une ligne du tableau, en plus du simple changement de fond déjà présent (`hover:bg-zebra`). Barre verticale bleue (`--brand`, 2px) à gauche de la cellule Client, en `opacity-0 group-hover:opacity-100` — même langage visuel que l'état `.selected` de `W2 - Liste interventions.html` (accent bleu à gauche), mais déclenché par le survol plutôt qu'une sélection persistante (la liste n'a pas de concept de ligne sélectionnée).
 
+### Déconnexion (US4.3, promue le 2026-09-14)
+Même demande que côté mobile (cf. `mobile/docs/architecture.md`) : bouton de déconnexion dans `Rail.tsx` (rail de navigation latéral), en bas sous l'espace flexible, au-dessus du bloc initiales technicien existant. `clearToken()` (déjà exposé par `features/auth/lib/token.ts`, réutilisé tel quel — pas de nouveau code de gestion de jeton) puis `router.push('/connexion')`. Pas de modale de confirmation côté web (contrairement au mobile) : aucune donnée locale n'est purgée ici, l'action est bénigne et immédiatement réversible (reconnexion), donc pas de risque à confirmer.
+
 ### Environnement de développement
 - **Serveur de dev sur le port 3001** (`next dev -p 3001`, `next start -p 3001`) — `next dev` démarre sur le port 3000 par défaut, en conflit avec le backend NestJS qui écoute déjà sur ce port en local. `NEXT_PUBLIC_API_URL` reste `http://localhost:3000` (celui du backend, inchangé).
+- **Contournement ponctuel du 2026-09-15** : le port 3000 était occupé par un processus tiers (serveur MCP de Draw.io desktop) au moment de tester le ticket déconnexion, donc le backend a été démarré sur le port 3001 à la place pour cette session, et le web sur le port 3002 (`NEXT_PUBLIC_API_URL=http://localhost:3001` dans `.env.local`, fichier non versionné). Ceci n'est **pas** un changement de convention — dès que le conflit de port est résolu (Draw.io fermé, ou tourne sur un autre port), revenir à web=3001/backend=3000 comme documenté ci-dessus.
 
 ### Déploiement
 - `output: 'export'` : build statique dans `out/`, servi par Nginx sur le VPS.
