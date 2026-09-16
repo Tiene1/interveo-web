@@ -15,8 +15,8 @@ describe("InterventionsFiltres", () => {
   it("n'affiche pas Réinitialiser sans filtre actif", () => {
     render(
       <InterventionsFiltres
-        client=""
-        onClientChange={vi.fn()}
+        motCle=""
+        onMotCleChange={vi.fn()}
         technicienId=""
         onTechnicienIdChange={vi.fn()}
         techniciens={[technicien]}
@@ -26,12 +26,12 @@ describe("InterventionsFiltres", () => {
   });
 
   it("affiche Réinitialiser et le declenche quand un filtre est actif", () => {
-    const onClientChange = vi.fn();
+    const onMotCleChange = vi.fn();
     const onTechnicienIdChange = vi.fn();
     render(
       <InterventionsFiltres
-        client="hotel"
-        onClientChange={onClientChange}
+        motCle="hotel"
+        onMotCleChange={onMotCleChange}
         technicienId=""
         onTechnicienIdChange={onTechnicienIdChange}
         techniciens={[technicien]}
@@ -39,33 +39,33 @@ describe("InterventionsFiltres", () => {
     );
 
     fireEvent.click(screen.getByText("Réinitialiser"));
-    expect(onClientChange).toHaveBeenCalledWith("");
+    expect(onMotCleChange).toHaveBeenCalledWith("");
     expect(onTechnicienIdChange).toHaveBeenCalledWith("");
   });
 
-  it("propage la saisie du filtre client", () => {
-    const onClientChange = vi.fn();
+  it("propage la saisie du mot-cle", () => {
+    const onMotCleChange = vi.fn();
     render(
       <InterventionsFiltres
-        client=""
-        onClientChange={onClientChange}
+        motCle=""
+        onMotCleChange={onMotCleChange}
         technicienId=""
         onTechnicienIdChange={vi.fn()}
         techniciens={[technicien]}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Filtrer par nom de client"), {
+    fireEvent.change(screen.getByLabelText("Rechercher une intervention"), {
       target: { value: "hotel ivoire" },
     });
-    expect(onClientChange).toHaveBeenCalledWith("hotel ivoire");
+    expect(onMotCleChange).toHaveBeenCalledWith("hotel ivoire");
   });
 
   it("liste les techniciens dans le select", () => {
     render(
       <InterventionsFiltres
-        client=""
-        onClientChange={vi.fn()}
+        motCle=""
+        onMotCleChange={vi.fn()}
         technicienId=""
         onTechnicienIdChange={vi.fn()}
         techniciens={[technicien]}
@@ -79,8 +79,8 @@ describe("InterventionsFiltres", () => {
     const onTechnicienIdChange = vi.fn();
     render(
       <InterventionsFiltres
-        client=""
-        onClientChange={vi.fn()}
+        motCle=""
+        onMotCleChange={vi.fn()}
         technicienId=""
         onTechnicienIdChange={onTechnicienIdChange}
         techniciens={[technicien]}
@@ -96,8 +96,8 @@ describe("InterventionsFiltres", () => {
   it("affiche l indicateur de tri par date prevue", () => {
     render(
       <InterventionsFiltres
-        client=""
-        onClientChange={vi.fn()}
+        motCle=""
+        onMotCleChange={vi.fn()}
         technicienId=""
         onTechnicienIdChange={vi.fn()}
         techniciens={[technicien]}

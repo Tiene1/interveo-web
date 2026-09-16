@@ -3,33 +3,42 @@ import { Select } from "@/components/ui/Select";
 import type { Technicien } from "../types/intervention";
 
 interface InterventionsFiltresProps {
-  client: string;
-  onClientChange: (value: string) => void;
+  motCle: string;
+  onMotCleChange: (value: string) => void;
   technicienId: string;
   onTechnicienIdChange: (value: string) => void;
   techniciens: Technicien[];
 }
 
+/**
+ * US3.2 fusionne avec US3.8 le 2026-09-16 (retour de Cedric apres la
+ * recette Nice to have) : la recherche mot-cle avait ete construite comme
+ * un champ separe dans le panneau "Filtres" (US3.8), mais Cedric a trouve
+ * ca peu intuitif face a ce champ deja visible en permanence. Ce champ
+ * cherche desormais sur nomClient/adresse/motifSignale/problemeConstate/
+ * travauxRealises (cf. web/docs/architecture.md), un seul champ au lieu
+ * de deux.
+ */
 export function InterventionsFiltres({
-  client,
-  onClientChange,
+  motCle,
+  onMotCleChange,
   technicienId,
   onTechnicienIdChange,
   techniciens,
 }: InterventionsFiltresProps) {
-  const filtreActif = client !== "" || technicienId !== "";
+  const filtreActif = motCle !== "" || technicienId !== "";
 
   return (
     <div className="mb-0 flex items-center justify-between gap-4 border-b border-line pb-3">
       <div className="flex min-w-0 flex-1 items-center gap-5">
-        <div className="flex max-w-[260px] flex-1 items-center gap-2 border-b border-transparent py-1.5 focus-within:border-ink-1">
+        <div className="flex max-w-[320px] flex-1 items-center gap-2 border-b border-transparent py-1.5 focus-within:border-ink-1">
           <Search size={14} strokeWidth={1.75} className="shrink-0 text-text-weak" />
           <input
             type="text"
-            value={client}
-            onChange={(event) => onClientChange(event.target.value)}
-            placeholder="Filtrer par nom de client…"
-            aria-label="Filtrer par nom de client"
+            value={motCle}
+            onChange={(event) => onMotCleChange(event.target.value)}
+            placeholder="Rechercher un client, une adresse, un motif…"
+            aria-label="Rechercher une intervention"
             className="w-full border-0 bg-transparent text-[13px] text-ink-1 placeholder:text-text-weak focus:outline-none"
           />
         </div>
@@ -50,7 +59,7 @@ export function InterventionsFiltres({
           <button
             type="button"
             onClick={() => {
-              onClientChange("");
+              onMotCleChange("");
               onTechnicienIdChange("");
             }}
             className="text-[13px] font-medium text-brand underline decoration-1 underline-offset-[3px] hover:text-brand-hover"

@@ -28,16 +28,13 @@ const OPTIONS_STATUT = [
 
 export function InterventionsListe() {
   const [page, setPage] = useState(1);
-  const [client, setClient] = useState("");
   const [technicienId, setTechnicienId] = useState("");
   const [statut, setStatut] = useState("");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
   const [motCle, setMotCle] = useState("");
-  const clientDebounce = useDebouncedValue(client);
   const motCleDebounce = useDebouncedValue(motCle);
   const filtreActif =
-    client !== "" ||
     technicienId !== "" ||
     statut !== "" ||
     dateDebut !== "" ||
@@ -46,7 +43,6 @@ export function InterventionsListe() {
 
   const interventions = useInterventions({
     page,
-    client: clientDebounce,
     technicienId,
     statut,
     dateDebut,
@@ -56,7 +52,6 @@ export function InterventionsListe() {
   const techniciens = useTechniciens();
 
   function reinitialiserFiltres() {
-    setClient("");
     setTechnicienId("");
     setStatut("");
     setDateDebut("");
@@ -73,7 +68,6 @@ export function InterventionsListe() {
     setErreurExport(false);
     try {
       const params = construireParamsFiltre({
-        client: clientDebounce,
         technicienId,
         statut,
         dateDebut,
@@ -147,11 +141,6 @@ export function InterventionsListe() {
                 setDateFin(value);
                 setPage(1);
               }}
-              motCle={motCle}
-              onMotCleChange={(value) => {
-                setMotCle(value);
-                setPage(1);
-              }}
             />
             <Button variant="secondary" size="sm" onClick={exporterCsv} disabled={exportEnCours}>
               {exportEnCours ? <Spinner /> : <Download size={14} strokeWidth={1.75} />}
@@ -173,9 +162,9 @@ export function InterventionsListe() {
         )}
 
         <InterventionsFiltres
-          client={client}
-          onClientChange={(value) => {
-            setClient(value);
+          motCle={motCle}
+          onMotCleChange={(value) => {
+            setMotCle(value);
             setPage(1);
           }}
           technicienId={technicienId}

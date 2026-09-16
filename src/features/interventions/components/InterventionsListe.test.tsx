@@ -127,7 +127,7 @@ describe("InterventionsListe", () => {
   it("affiche un message distinct quand un filtre ne trouve aucun resultat", async () => {
     vi.mocked(apiRequest).mockImplementation((path: string) => {
       if (path.startsWith("/interventions")) {
-        const filtre = path.includes("client=");
+        const filtre = path.includes("motCle=");
         return Promise.resolve(
           filtre
             ? {
@@ -172,7 +172,7 @@ describe("InterventionsListe", () => {
     renderListe();
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Filtrer par nom de client"), {
+    fireEvent.change(screen.getByLabelText("Rechercher une intervention"), {
       target: { value: "introuvable" },
     });
 
@@ -297,7 +297,7 @@ describe("InterventionsListe", () => {
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
   });
 
-  it("filtre par mot-cle via le panneau Filtres et reinitialise", async () => {
+  it("filtre par mot-cle via la barre de recherche et reinitialise", async () => {
     vi.mocked(apiRequest).mockImplementation((path: string) => {
       if (path.startsWith("/interventions")) {
         const filtreMotCle = path.includes("motCle=climatisation");
@@ -345,8 +345,7 @@ describe("InterventionsListe", () => {
     renderListe();
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Filtres/ }));
-    fireEvent.change(screen.getByLabelText("Adresse, motif, problème, travaux"), {
+    fireEvent.change(screen.getByLabelText("Rechercher une intervention"), {
       target: { value: "climatisation" },
     });
 
