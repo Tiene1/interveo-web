@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Filter, Plus, RotateCw } from "lucide-react";
+import { Filter, Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
 import { useInterventions } from "../hooks/useInterventions";
@@ -13,19 +14,28 @@ import { InterventionsTable } from "./InterventionsTable";
 import { InterventionsTableSkeleton } from "./InterventionsTableSkeleton";
 import { InterventionsPagination } from "./InterventionsPagination";
 
+const OPTIONS_STATUT = [
+  { value: "", label: "Toutes" },
+  { value: "PLANIFIEE", label: "Planifiées" },
+  { value: "REALISEE", label: "Réalisées" },
+  { value: "ANNULEE", label: "Annulées" },
+];
+
 export function InterventionsListe() {
   const [page, setPage] = useState(1);
   const [client, setClient] = useState("");
   const [technicienId, setTechnicienId] = useState("");
+  const [statut, setStatut] = useState("");
   const clientDebounce = useDebouncedValue(client);
-  const filtreActif = client !== "" || technicienId !== "";
+  const filtreActif = client !== "" || technicienId !== "" || statut !== "";
 
-  const interventions = useInterventions({ page, client: clientDebounce, technicienId });
+  const interventions = useInterventions({ page, client: clientDebounce, technicienId, statut });
   const techniciens = useTechniciens();
 
   function reinitialiserFiltres() {
     setClient("");
     setTechnicienId("");
+    setStatut("");
     setPage(1);
   }
 
@@ -45,16 +55,16 @@ export function InterventionsListe() {
               <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
                 Interventions<span className="italic">.</span>
               </h1>
-              {/* Selecteur de statut : pas encore fonctionnel (US3.4 Nice to
-                  have, hors perimetre MVP). Span inerte, meme convention que
-                  les icones Techniciens/Parametres du rail (Rail.tsx). */}
-              <span
-                aria-hidden
-                className="inline-flex cursor-default items-center gap-1 rounded-md py-1 pl-2.5 pr-2 text-[13px] font-medium text-text-soft"
-              >
-                Toutes
-                <ChevronDown size={14} strokeWidth={1.75} />
-              </span>
+              <Select
+                variant="inline"
+                value={statut}
+                onChange={(value) => {
+                  setStatut(value);
+                  setPage(1);
+                }}
+                ariaLabel="Filtrer par statut"
+                options={OPTIONS_STATUT}
+              />
             </div>
             {interventions.data && (
               <p className="max-w-[640px] text-sm leading-[1.5] text-text-soft">
@@ -68,8 +78,8 @@ export function InterventionsListe() {
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
             {/* Bouton Filtres : pas encore fonctionnel (periode + mot-cle,
-                US3.4/3.5/3.8 Nice to have, hors perimetre MVP). Meme
-                convention inerte que le selecteur de statut ci-dessus. */}
+                US3.4/3.8 Nice to have, hors perimetre MVP). Le filtre par
+                statut (US3.5), lui, est fonctionnel via le selecteur ci-dessus. */}
             <span
               aria-hidden
               className="inline-flex h-9 cursor-default items-center justify-center gap-2 rounded-md border border-line px-4 text-[13px] font-medium text-ink-1"
@@ -136,7 +146,7 @@ export function InterventionsListe() {
                 Aucune intervention ne correspond <span className="italic">à ces filtres</span>.
               </>
             }
-            description="Essayez un autre nom de client ou un autre technicien."
+            description="Essayez un autre nom de client, un autre technicien ou un autre statut."
             actions={
               <Button variant="secondary" size="sm" onClick={reinitialiserFiltres}>
                 Réinitialiser les filtres

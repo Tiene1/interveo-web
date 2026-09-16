@@ -179,4 +179,62 @@ describe("InterventionsListe", () => {
     expect(await screen.findByText(/ne correspond/, {}, { timeout: 2000 })).toBeInTheDocument();
     expect(screen.getByText("Réinitialiser les filtres")).toBeInTheDocument();
   });
+
+  it("filtre par statut via le selecteur et reinitialise avec les autres filtres", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string) => {
+      if (path.startsWith("/interventions")) {
+        const filtreStatut = path.includes("statut=REALISEE");
+        return Promise.resolve(
+          filtreStatut
+            ? {
+                data: [],
+                total: 0,
+                page: 1,
+                limit: 20,
+                parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
+              }
+            : {
+                data: [
+                  {
+                    id: "3915b537-5d7a-40b7-be54-87578e11be91",
+                    nomClient: "Hôtel Ivoire",
+                    adresse: "Boulevard Hassan II, Cocody",
+                    telephone1: "+2250700000001",
+                    telephone2: null,
+                    geolocalisation: null,
+                    motifSignale: null,
+                    datePrevue: "2026-09-14T09:00:00.000Z",
+                    technicienId: "tech-1",
+                    creeParId: "directeur-1",
+                    typeEquipement: null,
+                    problemeConstate: null,
+                    travauxRealises: null,
+                    statut: "PLANIFIEE",
+                    dateRealisation: null,
+                    creeLe: "2026-09-10T00:00:00.000Z",
+                    misAJourLe: "2026-09-10T00:00:00.000Z",
+                  },
+                ],
+                total: 1,
+                page: 1,
+                limit: 20,
+                parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
+              },
+        );
+      }
+      return Promise.resolve([]);
+    });
+
+    renderListe();
+    expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Filtrer par statut" }));
+    fireEvent.click(screen.getByRole("option", { name: "Réalisées" }));
+
+    expect(await screen.findByText(/ne correspond/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Réinitialiser les filtres"));
+
+    expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
+  });
 });
