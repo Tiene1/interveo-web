@@ -2,12 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, RotateCw } from "lucide-react";
+import { Download, Plus, RotateCw } from "lucide-react";
+import { apiRequest } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { Spinner } from "@/components/ui/Spinner";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
-import { useInterventions } from "../hooks/useInterventions";
+import { genererCsvInterventions } from "../lib/csv";
+import type { InterventionExport } from "../types/intervention";
+import { construireParamsFiltre, useInterventions } from "../hooks/useInterventions";
 import { useTechniciens } from "../hooks/useTechniciens";
 import { InterventionsFiltres } from "./InterventionsFiltres";
 import { InterventionsFiltresPanneau } from "./InterventionsFiltresPanneau";
@@ -59,6 +63,39 @@ export function InterventionsListe() {
     setDateFin("");
     setMotCle("");
     setPage(1);
+  }
+
+  const [exportEnCours, setExportEnCours] = useState(false);
+  const [erreurExport, setErreurExport] = useState(false);
+
+  async function exporterCsv() {
+    setExportEnCours(true);
+    setErreurExport(false);
+    try {
+      const params = construireParamsFiltre({
+        client: clientDebounce,
+        technicienId,
+        statut,
+        dateDebut,
+        dateFin,
+        motCle: motCleDebounce,
+      });
+      const query = params.toString();
+      const donnees = await apiRequest<InterventionExport[]>(
+        `/interventions/export${query ? `?${query}` : ""}`,
+      );
+      const csv = genererCsvInterventions(donnees);
+      const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" }));
+      const lien = document.createElement("a");
+      lien.href = url;
+      lien.download = "interventions.csv";
+      lien.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setErreurExport(true);
+    } finally {
+      setExportEnCours(false);
+    }
   }
 
   return (
@@ -116,6 +153,10 @@ export function InterventionsListe() {
                 setPage(1);
               }}
             />
+            <Button variant="secondary" size="sm" onClick={exporterCsv} disabled={exportEnCours}>
+              {exportEnCours ? <Spinner /> : <Download size={14} strokeWidth={1.75} />}
+              Exporter CSV
+            </Button>
             <Link href="/interventions/nouvelle">
               <Button variant="primary" size="sm">
                 <Plus size={14} strokeWidth={1.75} />
@@ -124,6 +165,12 @@ export function InterventionsListe() {
             </Link>
           </div>
         </div>
+
+        {erreurExport && (
+          <p className="mb-3 text-[13px] font-medium text-danger">
+            Échec de l&apos;export CSV, réessayez.
+          </p>
+        )}
 
         <InterventionsFiltres
           client={client}

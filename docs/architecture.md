@@ -19,6 +19,7 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 | US3.5 | Interventions (liste) | Filtre « Statut » (liste déroulante Toutes/Planifiées/Réalisées/Annulées) (**Nice to have promue**) |
 | US3.4 | Interventions (liste) | Filtre « Période » (Du/Au, sur date prévue), panneau « Filtres » (**Nice to have promue**) |
 | US3.8 | Interventions (liste) | Recherche mot-clé (adresse/motif/problème/travaux), même panneau « Filtres » (**Nice to have promue**) |
+| US3.10 | Interventions (liste) | Export CSV de la liste filtrée (`;`, BOM UTF-8, libellés français) (**Nice to have promue**) |
 | US1.1 | Nouvelle intervention | Nom du client, date et heure prévues, technicien |
 | US1.8 | Nouvelle intervention | Adresse, téléphone 1, téléphone 2 (optionnel), géolocalisation (optionnel) |
 | US1.3 | Nouvelle intervention | Liste déroulante technicien alimentée par `GET /utilisateurs?role=TECHNICIEN&actif=true` |
@@ -122,6 +123,20 @@ Les deux fermetures au clic extérieur et à `Échap`, même mécanique que `Sel
 
 Backend : `ListInterventionsDto.dateDebut`/`dateFin` (`@Type(() => Date)`, `@IsDate()`, optionnels chacun), 400 explicite si `dateDebut > dateFin` (`InterventionsService.lister()`). `InterventionsRepository.list()` filtre `datePrevue` avec `gte: dateDebut` et `lt: lendemainMinuit(dateFin)` — **borne haute exclusive sur le lendemain**, pas `lte: dateFin`, sinon une intervention prévue l'après-midi du dernier jour de la période (`datePrevue` a une heure, le filtre ne reçoit qu'une date) serait exclue à tort. Abidjan étant sur le même fuseau que UTC (`Africa/Abidjan` = UTC+0), une date seule envoyée par le `<input type="date">` du navigateur correspond exactement à minuit local, sans décalage à gérer. `motCle` ajoute un bloc `OR` au `where` Prisma, cohabitant avec les conditions `AND` implicites des autres filtres (syntaxe valide de `Prisma.InterventionWhereInput`, pas de conflit avec `client`/`technicienId`/`statut`/`datePrevue`).
 
+### Export CSV de la liste (US3.10, promu le 2026-09-16)
+Quatrième ticket Nice to have, premier du bloc « Exports ». Bouton « Exporter CSV » (icône `Download`, variant `secondary`) à côté du bouton « Filtres ». **Décision de périmètre prise sans repasser par Cédric** (raisonnement explicité, pas une question bloquante comme US3.8) : exporte la liste telle que **filtrée à l'instant présent** (client/technicien/statut/période/mot-clé combinés), pas seulement la période comme le laissait entendre le CDC (« CSV liste par période ») — un director qui a déjà filtré sur un technicien ou un mot-clé attend logiquement que l'export reflète ce qu'il regarde, pas qu'il reparte d'une liste non filtrée.
+
+**Répartition backend/web délibérée, pour rester dans les limites déjà posées par l'architecture (« le backend fait foi pour les types », les libellés français sont une responsabilité des clients, jamais du backend — cf. `typeEquipement.ts`)** : `GET /interventions/export` renvoie du **JSON brut** (mêmes filtres que `GET /interventions`, sans pagination, technicien inclus en `{ nom }`), pas un CSV déjà généré côté serveur. Le CSV lui-même (`features/interventions/lib/csv.ts`, `genererCsvInterventions()`) est construit côté web, à partir des mêmes fonctions de libellé déjà utilisées par l'écran (`libelleStatut()` exportée de `StatusChip.tsx`, `libelleTypeEquipement()` de `typeEquipement.ts`) et du même formateur de date (`formatDateTime()`). Colonnes : Client, Adresse, Téléphone, Date prévue, Technicien, Statut, Type d'équipement, Date de réalisation, Problème constaté, Travaux réalisés.
+
+**Deux choix de format, documentés pour ne pas être « corrigés » par erreur plus tard** :
+- **Séparateur `;`, pas `,`** : Excel en locale française (poste de Cédric/M. Kouassi à Abidjan) traite la virgule comme séparateur décimal ; un CSV `,` s'ouvrirait en une seule colonne sans passer par l'assistant d'import.
+- **BOM UTF-8** (`﻿` préfixé au Blob) : sans lui, Excel interprète le fichier en ANSI et casse les accents (« Réalisée » devient illisible).
+- Tous les champs sont systématiquement entre guillemets (`champCsv()`), guillemets internes doublés — plus simple et plus sûr que d'échapper seulement quand nécessaire, vu que `problemeConstate`/`travauxRealises` sont du texte libre pouvant contenir `;` ou des guillemets.
+
+Téléchargement en JSON + Blob côté client plutôt qu'en `StreamableFile` côté backend (contrairement à `GET /photos/:id`) : consommer du JSON via `apiRequest` existant suffit, pas besoin du mécanisme d'authentification par blob (`apiFetchBlob`) réservé aux fichiers binaires. `URL.createObjectURL` sur un `Blob` texte + `<a download>` temporaire cliqué puis retiré, `URL.revokeObjectURL` ensuite.
+
+Backend : refactor mineur avant l'ajout — la construction du `where` Prisma (`list()`) a été extraite dans `construireWhere()`, réutilisée telle quelle par la nouvelle `InterventionsRepository.listPourExport()` (mêmes filtres, sans `skip`/`take`) pour ne jamais dupliquer la logique de filtrage entre liste paginée et export. `InterventionsController.exporter()` déclaré **avant** `detail(':id')` : sinon `ParseUUIDPipe` intercepte `"export"` comme un id invalide (400) avant même d'atteindre la bonne route — piège classique de routing Express/Nest avec un segment littéral après un segment paramétré.
+
 ### Menu déroulant personnalisé (`components/ui/Select.tsx`) — 2026-09-14
 Le `<select>` natif (filtre Technicien, champ Technicien assigné du formulaire) ouvre un menu dessiné par le système d'exploitation, impossible à restyler pour coller au design system — constat Cédric ("pas quelque chose de générique"). Reconstruit à la main (aucune nouvelle dépendance, ni Radix ni Headless UI) : un bouton déclencheur (`role="combobox"`, `aria-expanded`/`aria-controls`/`aria-haspopup`) et un panneau `role="listbox"` positionné en absolu, coché sur l'option sélectionnée. Navigation clavier (flèches, Entrée, Échap), fermeture au clic extérieur. Deux variantes visuelles pour un seul moteur d'interaction : `variant="field"` (soulignement + icône, même gabarit que `Champ` dans `InterventionForm.tsx`) et `variant="inline"` (libellé + valeur + chevron, sans bordure visible par défaut, pour `InterventionsFiltres.tsx`). Remplace l'ancien `Select.tsx` (wrapper de `<select>` natif jamais branché nulle part) au même emplacement.
 
@@ -191,7 +206,7 @@ Cédric a demandé la suppression définitive pour les interventions Annulées c
 ## 5. Hors périmètre de l'app web pour le MVP
 
 - Les filtres par état (US3.5), par période (US3.4) et la recherche par mot-clé (US3.8) sont construits, cf. section 4.
-- Exports PDF et CSV (US3.9, US3.10).
+- Export PDF du détail (US3.9). L'export CSV de la liste (US3.10) est construit, cf. section 4.
 - Écrans de gestion des comptes techniciens (US4.5 à US4.9).
 - Champ « type d'équipement » dans le formulaire (US2.4 Nice to have, non promue).
 - Toute consultation mobile pour M. Kouassi.

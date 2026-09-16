@@ -356,4 +356,88 @@ describe("InterventionsListe", () => {
 
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
   });
+
+  it("exporte le CSV de la liste filtree en declenchant un telechargement", async () => {
+    const interventionExport = {
+      id: "3915b537-5d7a-40b7-be54-87578e11be91",
+      nomClient: "Hôtel Ivoire",
+      adresse: "Boulevard Hassan II, Cocody",
+      telephone1: "+2250700000001",
+      telephone2: null,
+      geolocalisation: null,
+      motifSignale: null,
+      datePrevue: "2026-09-14T09:00:00.000Z",
+      technicienId: "tech-1",
+      creeParId: "directeur-1",
+      typeEquipement: null,
+      problemeConstate: null,
+      travauxRealises: null,
+      statut: "PLANIFIEE",
+      dateRealisation: null,
+      creeLe: "2026-09-10T00:00:00.000Z",
+      misAJourLe: "2026-09-10T00:00:00.000Z",
+      technicien: { nom: "Awa Traore" },
+    };
+
+    vi.mocked(apiRequest).mockImplementation((path: string) => {
+      if (path.startsWith("/interventions/export")) {
+        return Promise.resolve([interventionExport]);
+      }
+      if (path.startsWith("/interventions")) {
+        return Promise.resolve({
+          data: [],
+          total: 0,
+          page: 1,
+          limit: 20,
+          parStatut: { PLANIFIEE: 0, REALISEE: 0, ANNULEE: 0 },
+        });
+      }
+      return Promise.resolve([]);
+    });
+
+    const createObjectURL = vi.fn().mockReturnValue("blob:interventions-csv");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
+    const clic = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(clic);
+
+    renderListe();
+    await waitFor(() => expect(vi.mocked(apiRequest)).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: /Exporter CSV/ }));
+
+    await waitFor(() =>
+      expect(vi.mocked(apiRequest)).toHaveBeenCalledWith(expect.stringContaining("/interventions/export")),
+    );
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
+    expect(clic).toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("affiche un message d'erreur si l'export CSV echoue", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string) => {
+      if (path.startsWith("/interventions/export")) {
+        return Promise.reject(new Error("erreur reseau"));
+      }
+      if (path.startsWith("/interventions")) {
+        return Promise.resolve({
+          data: [],
+          total: 0,
+          page: 1,
+          limit: 20,
+          parStatut: { PLANIFIEE: 0, REALISEE: 0, ANNULEE: 0 },
+        });
+      }
+      return Promise.resolve([]);
+    });
+
+    renderListe();
+    await waitFor(() => expect(vi.mocked(apiRequest)).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole("button", { name: /Exporter CSV/ }));
+
+    expect(await screen.findByText(/Échec de l'export CSV/)).toBeInTheDocument();
+  });
 });

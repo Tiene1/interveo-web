@@ -8,6 +8,11 @@ const LABELS: Record<InterventionStatut, string> = {
   ANNULEE: "Annulée",
 };
 
+/** Libellé français d'un statut, réutilisé hors composant (ex. export CSV). */
+export function libelleStatut(statut: InterventionStatut): string {
+  return LABELS[statut];
+}
+
 const MARKER_CLASSES: Record<InterventionStatut, string> = {
   PLANIFIEE: "bg-warning",
   REALISEE: "bg-success",

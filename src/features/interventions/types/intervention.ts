@@ -52,3 +52,8 @@ export interface InterventionDetail extends Intervention {
   photos: Photo[];
   technicien: Technicien;
 }
+
+/** US3.10. Reponse de GET /interventions/export : pas de photos, technicien reduit au nom. */
+export interface InterventionExport extends Intervention {
+  technicien: { nom: string };
+}

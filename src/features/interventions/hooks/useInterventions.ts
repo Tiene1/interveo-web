@@ -12,7 +12,8 @@ export interface InterventionsFiltre {
   motCle?: string;
 }
 
-export function useInterventions(filtre: InterventionsFiltre = {}) {
+/** Reutilise pour la liste paginee (US3.1) et l'export CSV (US3.10, sans page/limit). */
+export function construireParamsFiltre(filtre: InterventionsFiltre): URLSearchParams {
   const params = new URLSearchParams();
   if (filtre.page) params.set("page", String(filtre.page));
   if (filtre.client) params.set("client", filtre.client);
@@ -21,7 +22,11 @@ export function useInterventions(filtre: InterventionsFiltre = {}) {
   if (filtre.dateDebut) params.set("dateDebut", filtre.dateDebut);
   if (filtre.dateFin) params.set("dateFin", filtre.dateFin);
   if (filtre.motCle) params.set("motCle", filtre.motCle);
-  const query = params.toString();
+  return params;
+}
+
+export function useInterventions(filtre: InterventionsFiltre = {}) {
+  const query = construireParamsFiltre(filtre).toString();
 
   return useQuery({
     queryKey: ["interventions", filtre],
