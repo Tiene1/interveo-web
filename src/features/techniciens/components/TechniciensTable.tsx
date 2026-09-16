@@ -1,3 +1,5 @@
+import { UserX } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { formatDateTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
 import type { CompteTechnicien } from "../types/utilisateur";
@@ -25,15 +27,21 @@ function PuceStatutCompte({ actif }: { actif: boolean }) {
   );
 }
 
-export function TechniciensTable({ techniciens }: { techniciens: CompteTechnicien[] }) {
+interface TechniciensTableProps {
+  techniciens: CompteTechnicien[];
+  onDesactiver: (technicien: CompteTechnicien) => void;
+}
+
+export function TechniciensTable({ techniciens, onDesactiver }: TechniciensTableProps) {
   return (
     <table className="w-full border-collapse text-[13px]">
       <thead>
         <tr>
-          <th className={`${TH_CLASSES} w-[38%] pl-0`}>Nom</th>
-          <th className={`${TH_CLASSES} w-[26%]`}>Identifiant</th>
-          <th className={`${TH_CLASSES} w-[140px]`}>Statut</th>
-          <th className={`${TH_CLASSES} w-[170px] pr-0`}>Créé le</th>
+          <th className={`${TH_CLASSES} w-[34%] pl-0`}>Nom</th>
+          <th className={`${TH_CLASSES} w-[22%]`}>Identifiant</th>
+          <th className={`${TH_CLASSES} w-[120px]`}>Statut</th>
+          <th className={`${TH_CLASSES} w-[150px]`}>Créé le</th>
+          <th className={`${TH_CLASSES} w-[140px] pr-0`} />
         </tr>
       </thead>
       <tbody>
@@ -55,8 +63,16 @@ export function TechniciensTable({ techniciens }: { techniciens: CompteTechnicie
             <td className={TD_CLASSES}>
               <PuceStatutCompte actif={technicien.actif} />
             </td>
-            <td className={`${TD_CLASSES} whitespace-nowrap pr-0 font-mono text-[12.5px] text-text-soft`}>
+            <td className={`${TD_CLASSES} whitespace-nowrap font-mono text-[12.5px] text-text-soft`}>
               {formatDateTime(technicien.creeLe)}
+            </td>
+            <td className={`${TD_CLASSES} pr-0 text-right`}>
+              {technicien.actif && (
+                <Button variant="ghost" size="sm" onClick={() => onDesactiver(technicien)}>
+                  <UserX size={14} strokeWidth={1.75} />
+                  Désactiver
+                </Button>
+              )}
             </td>
           </tr>
         ))}

@@ -5,14 +5,42 @@ import { Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useComptesTechniciens } from "../hooks/useComptesTechniciens";
+import { useDesactiverCompteTechnicien } from "../hooks/useDesactiverCompteTechnicien";
 import { CreerCompteModal } from "./CreerCompteModal";
+import { ConfirmationDesactivationModal } from "./ConfirmationDesactivationModal";
 import { TechniciensTable } from "./TechniciensTable";
+import type { CompteTechnicien } from "../types/utilisateur";
 
-/** US4.6 (liste) + US4.5 (creation). Desactiver/reinitialiser le mot de
- * passe restent des tickets separes (US4.7, US4.9). */
+/**
+ * Isole l'appel a useDesactiverCompteTechnicien(id) : l'id de la cible n'est
+ * connu qu'une fois un technicien selectionne (contrairement a InterventionDetail
+ * ou l'id est fixe pour toute la duree de vie de l'ecran), donc le hook ne peut
+ * pas etre appele inconditionnellement en haut de TechniciensListe.
+ */
+function DesactivationConnectee({
+  technicien,
+  onClose,
+}: {
+  technicien: CompteTechnicien;
+  onClose: () => void;
+}) {
+  const desactiver = useDesactiverCompteTechnicien(technicien.id);
+  return (
+    <ConfirmationDesactivationModal
+      technicien={technicien}
+      isPending={desactiver.isPending}
+      onCancel={onClose}
+      onConfirm={() => desactiver.mutate(undefined, { onSuccess: onClose })}
+    />
+  );
+}
+
+/** US4.6 (liste) + US4.5 (creation) + US4.7 (desactivation). Reinitialiser
+ * le mot de passe reste un ticket separe (US4.9). */
 export function TechniciensListe() {
   const techniciens = useComptesTechniciens();
   const [modaleCreationOuverte, setModaleCreationOuverte] = useState(false);
+  const [technicienADesactiver, setTechnicienADesactiver] = useState<CompteTechnicien | null>(null);
 
   return (
     <div className="flex h-full flex-col">
@@ -92,7 +120,7 @@ export function TechniciensListe() {
         )}
 
         {techniciens.data && techniciens.data.length > 0 && (
-          <TechniciensTable techniciens={techniciens.data} />
+          <TechniciensTable techniciens={techniciens.data} onDesactiver={setTechnicienADesactiver} />
         )}
       </div>
 
@@ -100,6 +128,13 @@ export function TechniciensListe() {
         <CreerCompteModal
           onClose={() => setModaleCreationOuverte(false)}
           onCreated={() => setModaleCreationOuverte(false)}
+        />
+      )}
+
+      {technicienADesactiver && (
+        <DesactivationConnectee
+          technicien={technicienADesactiver}
+          onClose={() => setTechnicienADesactiver(null)}
         />
       )}
     </div>

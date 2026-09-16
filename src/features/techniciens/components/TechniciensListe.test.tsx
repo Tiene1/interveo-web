@@ -161,4 +161,103 @@ describe("TechniciensListe", () => {
 
     expect(await screen.findByText("Cet identifiant est deja utilise")).toBeInTheDocument();
   });
+
+  it("le bouton Desactiver n'apparait que pour les comptes actifs (US4.7)", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+      {
+        id: "t2",
+        nom: "Awa Traore",
+        identifiant: "awa",
+        role: "TECHNICIEN",
+        actif: false,
+        creeLe: "2026-09-02T00:00:00.000Z",
+        misAJourLe: "2026-09-02T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    await screen.findByText("Jean Koffi");
+
+    expect(screen.getAllByText("Désactiver")).toHaveLength(1);
+  });
+
+  it("desactive un compte apres confirmation et rafraichit la liste (US4.7)", async () => {
+    let actif = true;
+    vi.mocked(apiRequest).mockImplementation((path: string, options?: { method?: string }) => {
+      if (options?.method === "PATCH") {
+        actif = false;
+        return Promise.resolve({
+          id: "t1",
+          nom: "Jean Koffi",
+          identifiant: "koffi",
+          role: "TECHNICIEN",
+          actif: false,
+          creeLe: "2026-09-01T00:00:00.000Z",
+          misAJourLe: "2026-09-16T00:00:00.000Z",
+        });
+      }
+      return Promise.resolve([
+        {
+          id: "t1",
+          nom: "Jean Koffi",
+          identifiant: "koffi",
+          role: "TECHNICIEN",
+          actif,
+          creeLe: "2026-09-01T00:00:00.000Z",
+          misAJourLe: "2026-09-01T00:00:00.000Z",
+        },
+      ]);
+    });
+
+    renderListe();
+    await screen.findByText("Jean Koffi");
+
+    fireEvent.click(screen.getByText("Désactiver"));
+    expect(await screen.findByText(/Désactiver ce/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Désactiver le compte"));
+
+    await waitFor(() =>
+      expect(apiRequest).toHaveBeenCalledWith("/utilisateurs/t1/desactiver", { method: "PATCH" }),
+    );
+    await waitFor(() => expect(screen.getByText("Inactif")).toBeInTheDocument());
+    expect(screen.queryByText("Désactiver le compte")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Désactiver" })).not.toBeInTheDocument();
+  });
+
+  it("annule la desactivation sans appeler l'API", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    await screen.findByText("Jean Koffi");
+
+    fireEvent.click(screen.getByText("Désactiver"));
+    expect(await screen.findByText(/Désactiver ce/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Retour"));
+
+    expect(screen.queryByText(/Désactiver ce/)).not.toBeInTheDocument();
+    expect(apiRequest).not.toHaveBeenCalledWith(
+      expect.stringContaining("/desactiver"),
+      expect.anything(),
+    );
+  });
 });
