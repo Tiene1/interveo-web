@@ -9,6 +9,7 @@ export interface InterventionsFiltre {
   statut?: string;
   dateDebut?: string;
   dateFin?: string;
+  motCle?: string;
 }
 
 export function useInterventions(filtre: InterventionsFiltre = {}) {
@@ -19,6 +20,7 @@ export function useInterventions(filtre: InterventionsFiltre = {}) {
   if (filtre.statut) params.set("statut", filtre.statut);
   if (filtre.dateDebut) params.set("dateDebut", filtre.dateDebut);
   if (filtre.dateFin) params.set("dateFin", filtre.dateFin);
+  if (filtre.motCle) params.set("motCle", filtre.motCle);
   const query = params.toString();
 
   return useQuery({

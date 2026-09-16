@@ -296,4 +296,64 @@ describe("InterventionsListe", () => {
 
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
   });
+
+  it("filtre par mot-cle via le panneau Filtres et reinitialise", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string) => {
+      if (path.startsWith("/interventions")) {
+        const filtreMotCle = path.includes("motCle=climatisation");
+        return Promise.resolve(
+          filtreMotCle
+            ? {
+                data: [],
+                total: 0,
+                page: 1,
+                limit: 20,
+                parStatut: { PLANIFIEE: 0, REALISEE: 0, ANNULEE: 0 },
+              }
+            : {
+                data: [
+                  {
+                    id: "3915b537-5d7a-40b7-be54-87578e11be91",
+                    nomClient: "Hôtel Ivoire",
+                    adresse: "Boulevard Hassan II, Cocody",
+                    telephone1: "+2250700000001",
+                    telephone2: null,
+                    geolocalisation: null,
+                    motifSignale: null,
+                    datePrevue: "2026-09-14T09:00:00.000Z",
+                    technicienId: "tech-1",
+                    creeParId: "directeur-1",
+                    typeEquipement: null,
+                    problemeConstate: null,
+                    travauxRealises: null,
+                    statut: "PLANIFIEE",
+                    dateRealisation: null,
+                    creeLe: "2026-09-10T00:00:00.000Z",
+                    misAJourLe: "2026-09-10T00:00:00.000Z",
+                  },
+                ],
+                total: 1,
+                page: 1,
+                limit: 20,
+                parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
+              },
+        );
+      }
+      return Promise.resolve([]);
+    });
+
+    renderListe();
+    expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Filtres/ }));
+    fireEvent.change(screen.getByLabelText("Adresse, motif, problème, travaux"), {
+      target: { value: "climatisation" },
+    });
+
+    expect(await screen.findByText(/ne correspond/, {}, { timeout: 2000 })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Réinitialiser"));
+
+    expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
+  });
 });

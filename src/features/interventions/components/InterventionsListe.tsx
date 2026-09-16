@@ -10,7 +10,7 @@ import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
 import { useInterventions } from "../hooks/useInterventions";
 import { useTechniciens } from "../hooks/useTechniciens";
 import { InterventionsFiltres } from "./InterventionsFiltres";
-import { InterventionsFiltrePeriode } from "./InterventionsFiltrePeriode";
+import { InterventionsFiltresPanneau } from "./InterventionsFiltresPanneau";
 import { InterventionsTable } from "./InterventionsTable";
 import { InterventionsTableSkeleton } from "./InterventionsTableSkeleton";
 import { InterventionsPagination } from "./InterventionsPagination";
@@ -29,9 +29,16 @@ export function InterventionsListe() {
   const [statut, setStatut] = useState("");
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
+  const [motCle, setMotCle] = useState("");
   const clientDebounce = useDebouncedValue(client);
+  const motCleDebounce = useDebouncedValue(motCle);
   const filtreActif =
-    client !== "" || technicienId !== "" || statut !== "" || dateDebut !== "" || dateFin !== "";
+    client !== "" ||
+    technicienId !== "" ||
+    statut !== "" ||
+    dateDebut !== "" ||
+    dateFin !== "" ||
+    motCle !== "";
 
   const interventions = useInterventions({
     page,
@@ -40,6 +47,7 @@ export function InterventionsListe() {
     statut,
     dateDebut,
     dateFin,
+    motCle: motCleDebounce,
   });
   const techniciens = useTechniciens();
 
@@ -49,6 +57,7 @@ export function InterventionsListe() {
     setStatut("");
     setDateDebut("");
     setDateFin("");
+    setMotCle("");
     setPage(1);
   }
 
@@ -90,9 +99,7 @@ export function InterventionsListe() {
             )}
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
-            {/* La recherche par mot-cle (US3.8) reste hors perimetre MVP,
-                a ajouter dans ce meme panneau le moment venu. */}
-            <InterventionsFiltrePeriode
+            <InterventionsFiltresPanneau
               dateDebut={dateDebut}
               onDateDebutChange={(value) => {
                 setDateDebut(value);
@@ -101,6 +108,11 @@ export function InterventionsListe() {
               dateFin={dateFin}
               onDateFinChange={(value) => {
                 setDateFin(value);
+                setPage(1);
+              }}
+              motCle={motCle}
+              onMotCleChange={(value) => {
+                setMotCle(value);
                 setPage(1);
               }}
             />
@@ -163,7 +175,7 @@ export function InterventionsListe() {
                 Aucune intervention ne correspond <span className="italic">à ces filtres</span>.
               </>
             }
-            description="Essayez un autre nom de client, un autre technicien, un autre statut ou une autre période."
+            description="Essayez un autre nom de client, un autre technicien, un autre statut, une autre période ou un autre mot-clé."
             actions={
               <Button variant="secondary" size="sm" onClick={reinitialiserFiltres}>
                 Réinitialiser les filtres
