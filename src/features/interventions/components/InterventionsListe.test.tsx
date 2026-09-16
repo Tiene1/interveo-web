@@ -237,4 +237,63 @@ describe("InterventionsListe", () => {
 
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
   });
+
+  it("filtre par periode via le panneau Filtres et reinitialise", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string) => {
+      if (path.startsWith("/interventions")) {
+        const filtrePeriode = path.includes("dateDebut=2026-09-01") && path.includes("dateFin=2026-09-30");
+        return Promise.resolve(
+          filtrePeriode
+            ? {
+                data: [],
+                total: 0,
+                page: 1,
+                limit: 20,
+                parStatut: { PLANIFIEE: 0, REALISEE: 0, ANNULEE: 0 },
+              }
+            : {
+                data: [
+                  {
+                    id: "3915b537-5d7a-40b7-be54-87578e11be91",
+                    nomClient: "Hôtel Ivoire",
+                    adresse: "Boulevard Hassan II, Cocody",
+                    telephone1: "+2250700000001",
+                    telephone2: null,
+                    geolocalisation: null,
+                    motifSignale: null,
+                    datePrevue: "2026-09-14T09:00:00.000Z",
+                    technicienId: "tech-1",
+                    creeParId: "directeur-1",
+                    typeEquipement: null,
+                    problemeConstate: null,
+                    travauxRealises: null,
+                    statut: "PLANIFIEE",
+                    dateRealisation: null,
+                    creeLe: "2026-09-10T00:00:00.000Z",
+                    misAJourLe: "2026-09-10T00:00:00.000Z",
+                  },
+                ],
+                total: 1,
+                page: 1,
+                limit: 20,
+                parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
+              },
+        );
+      }
+      return Promise.resolve([]);
+    });
+
+    renderListe();
+    expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Filtres/ }));
+    fireEvent.change(screen.getByLabelText("Du"), { target: { value: "2026-09-01" } });
+    fireEvent.change(screen.getByLabelText("Au"), { target: { value: "2026-09-30" } });
+
+    expect(await screen.findByText(/ne correspond/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Réinitialiser"));
+
+    expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
+  });
 });

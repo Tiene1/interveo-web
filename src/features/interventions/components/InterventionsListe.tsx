@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Filter, Plus, RotateCw } from "lucide-react";
+import { Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { StatePanel } from "@/components/ui/StatePanel";
@@ -10,6 +10,7 @@ import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
 import { useInterventions } from "../hooks/useInterventions";
 import { useTechniciens } from "../hooks/useTechniciens";
 import { InterventionsFiltres } from "./InterventionsFiltres";
+import { InterventionsFiltrePeriode } from "./InterventionsFiltrePeriode";
 import { InterventionsTable } from "./InterventionsTable";
 import { InterventionsTableSkeleton } from "./InterventionsTableSkeleton";
 import { InterventionsPagination } from "./InterventionsPagination";
@@ -26,16 +27,28 @@ export function InterventionsListe() {
   const [client, setClient] = useState("");
   const [technicienId, setTechnicienId] = useState("");
   const [statut, setStatut] = useState("");
+  const [dateDebut, setDateDebut] = useState("");
+  const [dateFin, setDateFin] = useState("");
   const clientDebounce = useDebouncedValue(client);
-  const filtreActif = client !== "" || technicienId !== "" || statut !== "";
+  const filtreActif =
+    client !== "" || technicienId !== "" || statut !== "" || dateDebut !== "" || dateFin !== "";
 
-  const interventions = useInterventions({ page, client: clientDebounce, technicienId, statut });
+  const interventions = useInterventions({
+    page,
+    client: clientDebounce,
+    technicienId,
+    statut,
+    dateDebut,
+    dateFin,
+  });
   const techniciens = useTechniciens();
 
   function reinitialiserFiltres() {
     setClient("");
     setTechnicienId("");
     setStatut("");
+    setDateDebut("");
+    setDateFin("");
     setPage(1);
   }
 
@@ -77,16 +90,20 @@ export function InterventionsListe() {
             )}
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
-            {/* Bouton Filtres : pas encore fonctionnel (periode + mot-cle,
-                US3.4/3.8 Nice to have, hors perimetre MVP). Le filtre par
-                statut (US3.5), lui, est fonctionnel via le selecteur ci-dessus. */}
-            <span
-              aria-hidden
-              className="inline-flex h-9 cursor-default items-center justify-center gap-2 rounded-md border border-line px-4 text-[13px] font-medium text-ink-1"
-            >
-              <Filter size={14} strokeWidth={1.75} />
-              Filtres
-            </span>
+            {/* La recherche par mot-cle (US3.8) reste hors perimetre MVP,
+                a ajouter dans ce meme panneau le moment venu. */}
+            <InterventionsFiltrePeriode
+              dateDebut={dateDebut}
+              onDateDebutChange={(value) => {
+                setDateDebut(value);
+                setPage(1);
+              }}
+              dateFin={dateFin}
+              onDateFinChange={(value) => {
+                setDateFin(value);
+                setPage(1);
+              }}
+            />
             <Link href="/interventions/nouvelle">
               <Button variant="primary" size="sm">
                 <Plus size={14} strokeWidth={1.75} />
@@ -146,7 +163,7 @@ export function InterventionsListe() {
                 Aucune intervention ne correspond <span className="italic">à ces filtres</span>.
               </>
             }
-            description="Essayez un autre nom de client, un autre technicien ou un autre statut."
+            description="Essayez un autre nom de client, un autre technicien, un autre statut ou une autre période."
             actions={
               <Button variant="secondary" size="sm" onClick={reinitialiserFiltres}>
                 Réinitialiser les filtres

@@ -17,6 +17,7 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 | US3.2 | Interventions (liste) | Filtre « Client » |
 | US3.3 | Interventions (liste) | Filtre « Technicien » (liste déroulante) |
 | US3.5 | Interventions (liste) | Filtre « Statut » (liste déroulante Toutes/Planifiées/Réalisées/Annulées) (**Nice to have promue**) |
+| US3.4 | Interventions (liste) | Filtre « Période » (Du/Au, sur date prévue), panneau « Filtres » (**Nice to have promue**) |
 | US1.1 | Nouvelle intervention | Nom du client, date et heure prévues, technicien |
 | US1.8 | Nouvelle intervention | Adresse, téléphone 1, téléphone 2 (optionnel), géolocalisation (optionnel) |
 | US1.3 | Nouvelle intervention | Liste déroulante technicien alimentée par `GET /utilisateurs?role=TECHNICIEN&actif=true` |
@@ -106,11 +107,16 @@ Chaque écran qui charge des données gère explicitement les 4 états : **charg
 - Pas de store global (Redux, Zustand). Le peu d'état local (valeurs des filtres, ouverture de la lightbox) reste dans les composants.
 
 ### Filtres
-- Filtres « client », « technicien » et « statut » combinables, passés en paramètres de `GET /interventions?client=&technicienId=&statut=`.
-- Le filtre période (US3.4) et la recherche par mot-clé (US3.8) restent **hors périmètre MVP**. Le bouton « Filtres » de `W2 - Liste interventions.html` reste affiché (fidélité visuelle demandée le 2026-09-14) mais **inerte** (`<span aria-hidden>`, pas de gestionnaire de clic) tant que ces User Stories ne sont pas construites — cf. section « Fidélité du haut de page » plus bas.
+- Filtres « client », « technicien », « statut » et « période » combinables, passés en paramètres de `GET /interventions?client=&technicienId=&statut=&dateDebut=&dateFin=`.
+- La recherche par mot-clé (US3.8) reste **hors périmètre MVP**. Le panneau « Filtres » a vocation à l'accueillir le moment venu, à côté de la période.
 
 ### Filtre par statut (US3.5, promu le 2026-09-16)
 Premier ticket Nice to have après validation de la recette Must have par Cédric. Le sélecteur « Toutes ⌄ » à côté du titre, jusque-là un `<span aria-hidden>` décoratif, est remplacé par le composant `Select` (`variant="inline"`, cf. « Menu déroulant personnalisé » ci-dessous) déjà utilisé pour le filtre Technicien — même moteur, pas de nouveau composant. Options `Toutes`/`Planifiées`/`Réalisées`/`Annulées` (`value=""` pour Toutes, absent du paramètre de requête). Backend : `ListInterventionsDto.statut` (`@IsEnum(StatutIntervention)`, optionnel), transmis tel quel à `InterventionsRepository.list()` (`where.statut`). Le changement de statut réinitialise la page à 1 et entre dans le calcul de `filtreActif` (déclenche l'état « Aucun résultat » avec réinitialisation groupée client/technicien/statut), au même titre que les deux filtres existants.
+
+### Filtre par période (US3.4, promu le 2026-09-16)
+Deuxième ticket Nice to have, juste après US3.5. Le bouton « Filtres », jusque-là un `<span aria-hidden>` décoratif, devient un vrai bouton (nouveau composant `InterventionsFiltrePeriode.tsx`) qui ouvre un petit panneau positionné en absolu (même styling que le panneau du `Select` maison : `border-line`, `bg-paper`, `shadow`) avec deux champs `<input type="date">` (réutilise `components/ui/Input.tsx`, pas de nouveau composant de champ) : « Du » et « Au ». Filtre sur `datePrevue` (colonne affichée sur la liste, cohérent avec le tri annoncé « Trié par date prévue »), pas sur `creeLe`. Fermeture au clic extérieur et à `Échap`, même mécanique que `Select.tsx`. Appliqué immédiatement à chaque changement (pas de bouton « Appliquer »), comme les filtres client/technicien/statut ; entre dans le calcul de `filtreActif` et de `reinitialiserFiltres`. Bouton mis en évidence (`border-ink-1 bg-line-soft`) quand une borne est active, un lien « Réinitialiser » propre au panneau efface les deux champs sans fermer les autres filtres.
+
+Backend : `ListInterventionsDto.dateDebut`/`dateFin` (`@Type(() => Date)`, `@IsDate()`, optionnels chacun), 400 explicite si `dateDebut > dateFin` (`InterventionsService.lister()`). `InterventionsRepository.list()` filtre `datePrevue` avec `gte: dateDebut` et `lt: lendemainMinuit(dateFin)` — **borne haute exclusive sur le lendemain**, pas `lte: dateFin`, sinon une intervention prévue l'après-midi du dernier jour de la période (`datePrevue` a une heure, le filtre ne reçoit qu'une date) serait exclue à tort. Abidjan étant sur le même fuseau que UTC (`Africa/Abidjan` = UTC+0), une date seule envoyée par le `<input type="date">` du navigateur correspond exactement à minuit local, sans décalage à gérer.
 
 ### Menu déroulant personnalisé (`components/ui/Select.tsx`) — 2026-09-14
 Le `<select>` natif (filtre Technicien, champ Technicien assigné du formulaire) ouvre un menu dessiné par le système d'exploitation, impossible à restyler pour coller au design system — constat Cédric ("pas quelque chose de générique"). Reconstruit à la main (aucune nouvelle dépendance, ni Radix ni Headless UI) : un bouton déclencheur (`role="combobox"`, `aria-expanded`/`aria-controls`/`aria-haspopup`) et un panneau `role="listbox"` positionné en absolu, coché sur l'option sélectionnée. Navigation clavier (flèches, Entrée, Échap), fermeture au clic extérieur. Deux variantes visuelles pour un seul moteur d'interaction : `variant="field"` (soulignement + icône, même gabarit que `Champ` dans `InterventionForm.tsx`) et `variant="inline"` (libellé + valeur + chevron, sans bordure visible par défaut, pour `InterventionsFiltres.tsx`). Remplace l'ancien `Select.tsx` (wrapper de `<select>` natif jamais branché nulle part) au même emplacement.
@@ -180,7 +186,7 @@ Cédric a demandé la suppression définitive pour les interventions Annulées c
 
 ## 5. Hors périmètre de l'app web pour le MVP
 
-- Filtre période, recherche par mot-clé (US3.4, US3.8). Le filtre par état (US3.5) est construit, cf. section 4.
+- Recherche par mot-clé (US3.8). Les filtres par état (US3.5) et par période (US3.4) sont construits, cf. section 4.
 - Exports PDF et CSV (US3.9, US3.10).
 - Écrans de gestion des comptes techniciens (US4.5 à US4.9).
 - Champ « type d'équipement » dans le formulaire (US2.4 Nice to have, non promue).

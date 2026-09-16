@@ -7,6 +7,8 @@ export interface InterventionsFiltre {
   client?: string;
   technicienId?: string;
   statut?: string;
+  dateDebut?: string;
+  dateFin?: string;
 }
 
 export function useInterventions(filtre: InterventionsFiltre = {}) {
@@ -15,6 +17,8 @@ export function useInterventions(filtre: InterventionsFiltre = {}) {
   if (filtre.client) params.set("client", filtre.client);
   if (filtre.technicienId) params.set("technicienId", filtre.technicienId);
   if (filtre.statut) params.set("statut", filtre.statut);
+  if (filtre.dateDebut) params.set("dateDebut", filtre.dateDebut);
+  if (filtre.dateFin) params.set("dateFin", filtre.dateFin);
   const query = params.toString();
 
   return useQuery({
