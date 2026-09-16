@@ -1,15 +1,18 @@
 "use client";
 
-import { RotateCw } from "lucide-react";
+import { useState } from "react";
+import { Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useComptesTechniciens } from "../hooks/useComptesTechniciens";
+import { CreerCompteModal } from "./CreerCompteModal";
 import { TechniciensTable } from "./TechniciensTable";
 
-/** US4.6. Lecture seule pour ce ticket : creer/desactiver/reinitialiser
- * le mot de passe sont des tickets separes (US4.5, US4.7, US4.9). */
+/** US4.6 (liste) + US4.5 (creation). Desactiver/reinitialiser le mot de
+ * passe restent des tickets separes (US4.7, US4.9). */
 export function TechniciensListe() {
   const techniciens = useComptesTechniciens();
+  const [modaleCreationOuverte, setModaleCreationOuverte] = useState(false);
 
   return (
     <div className="flex h-full flex-col">
@@ -20,23 +23,31 @@ export function TechniciensListe() {
           <span className="font-semibold text-text-soft">Techniciens</span>
         </div>
 
-        <div className="mb-5 flex flex-col gap-3">
-          <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
-            Techniciens<span className="italic">.</span>
-          </h1>
-          {techniciens.data && (
-            <p className="max-w-[640px] text-sm leading-[1.5] text-text-soft">
-              <span className="font-semibold text-ink-1">{techniciens.data.length}</span> techniciens au total —{" "}
-              <span className="font-semibold text-ink-1">
-                {techniciens.data.filter((technicien) => technicien.actif).length}
-              </span>{" "}
-              actifs,{" "}
-              <span className="font-semibold text-ink-1">
-                {techniciens.data.filter((technicien) => !technicien.actif).length}
-              </span>{" "}
-              inactifs.
-            </p>
-          )}
+        <div className="mb-5 flex items-end justify-between gap-6">
+          <div className="flex min-w-0 flex-1 flex-col gap-3">
+            <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
+              Techniciens<span className="italic">.</span>
+            </h1>
+            {techniciens.data && (
+              <p className="max-w-[640px] text-sm leading-[1.5] text-text-soft">
+                <span className="font-semibold text-ink-1">{techniciens.data.length}</span> techniciens au total —{" "}
+                <span className="font-semibold text-ink-1">
+                  {techniciens.data.filter((technicien) => technicien.actif).length}
+                </span>{" "}
+                actifs,{" "}
+                <span className="font-semibold text-ink-1">
+                  {techniciens.data.filter((technicien) => !technicien.actif).length}
+                </span>{" "}
+                inactifs.
+              </p>
+            )}
+          </div>
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <Button variant="primary" size="sm" onClick={() => setModaleCreationOuverte(true)}>
+              <Plus size={14} strokeWidth={1.75} />
+              Créer un compte
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -70,7 +81,13 @@ export function TechniciensListe() {
                 Aucun technicien <span className="italic">pour le moment</span>.
               </>
             }
-            description="Les comptes techniciens sont créés par l'équipe technique."
+            description="Créez le premier compte pour qu'un technicien puisse se connecter sur mobile."
+            actions={
+              <Button variant="primary" size="sm" onClick={() => setModaleCreationOuverte(true)}>
+                <Plus size={14} strokeWidth={1.75} />
+                Créer un compte
+              </Button>
+            }
           />
         )}
 
@@ -78,6 +95,13 @@ export function TechniciensListe() {
           <TechniciensTable techniciens={techniciens.data} />
         )}
       </div>
+
+      {modaleCreationOuverte && (
+        <CreerCompteModal
+          onClose={() => setModaleCreationOuverte(false)}
+          onCreated={() => setModaleCreationOuverte(false)}
+        />
+      )}
     </div>
   );
 }
