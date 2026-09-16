@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useComptesTechniciens } from "../hooks/useComptesTechniciens";
 import { useDesactiverCompteTechnicien } from "../hooks/useDesactiverCompteTechnicien";
+import { useReinitialiserMotDePasse } from "../hooks/useReinitialiserMotDePasse";
 import { CreerCompteModal } from "./CreerCompteModal";
 import { ConfirmationDesactivationModal } from "./ConfirmationDesactivationModal";
+import { ReinitialiserMotDePasseModal } from "./ReinitialiserMotDePasseModal";
 import { TechniciensTable } from "./TechniciensTable";
 import type { CompteTechnicien } from "../types/utilisateur";
 
@@ -35,12 +37,32 @@ function DesactivationConnectee({
   );
 }
 
-/** US4.6 (liste) + US4.5 (creation) + US4.7 (desactivation). Reinitialiser
- * le mot de passe reste un ticket separe (US4.9). */
+/** Meme raison que DesactivationConnectee : l'id cible n'est connu qu'a la selection. */
+function ReinitialisationConnectee({
+  technicien,
+  onClose,
+}: {
+  technicien: CompteTechnicien;
+  onClose: () => void;
+}) {
+  const reinitialiser = useReinitialiserMotDePasse(technicien.id);
+  return (
+    <ReinitialiserMotDePasseModal
+      technicien={technicien}
+      isPending={reinitialiser.isPending}
+      erreur={reinitialiser.error}
+      onClose={onClose}
+      onSubmit={(motDePasse) => reinitialiser.mutate(motDePasse, { onSuccess: onClose })}
+    />
+  );
+}
+
+/** US4.6 (liste) + US4.5 (creation) + US4.7 (desactivation) + US4.9 (reinitialisation). */
 export function TechniciensListe() {
   const techniciens = useComptesTechniciens();
   const [modaleCreationOuverte, setModaleCreationOuverte] = useState(false);
   const [technicienADesactiver, setTechnicienADesactiver] = useState<CompteTechnicien | null>(null);
+  const [technicienAReinitialiser, setTechnicienAReinitialiser] = useState<CompteTechnicien | null>(null);
 
   return (
     <div className="flex h-full flex-col">
@@ -120,7 +142,11 @@ export function TechniciensListe() {
         )}
 
         {techniciens.data && techniciens.data.length > 0 && (
-          <TechniciensTable techniciens={techniciens.data} onDesactiver={setTechnicienADesactiver} />
+          <TechniciensTable
+            techniciens={techniciens.data}
+            onDesactiver={setTechnicienADesactiver}
+            onReinitialiserMotDePasse={setTechnicienAReinitialiser}
+          />
         )}
       </div>
 
@@ -135,6 +161,13 @@ export function TechniciensListe() {
         <DesactivationConnectee
           technicien={technicienADesactiver}
           onClose={() => setTechnicienADesactiver(null)}
+        />
+      )}
+
+      {technicienAReinitialiser && (
+        <ReinitialisationConnectee
+          technicien={technicienAReinitialiser}
+          onClose={() => setTechnicienAReinitialiser(null)}
         />
       )}
     </div>

@@ -260,4 +260,81 @@ describe("TechniciensListe", () => {
       expect.anything(),
     );
   });
+
+  it("reinitialise le mot de passe apres saisie valide (US4.9)", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string, options?: { method?: string }) => {
+      if (options?.method === "PATCH") {
+        return Promise.resolve({
+          id: "t1",
+          nom: "Jean Koffi",
+          identifiant: "koffi",
+          role: "TECHNICIEN",
+          actif: true,
+          creeLe: "2026-09-01T00:00:00.000Z",
+          misAJourLe: "2026-09-16T00:00:00.000Z",
+        });
+      }
+      return Promise.resolve([
+        {
+          id: "t1",
+          nom: "Jean Koffi",
+          identifiant: "koffi",
+          role: "TECHNICIEN",
+          actif: true,
+          creeLe: "2026-09-01T00:00:00.000Z",
+          misAJourLe: "2026-09-01T00:00:00.000Z",
+        },
+      ]);
+    });
+
+    renderListe();
+    await screen.findByText("Jean Koffi");
+
+    fireEvent.click(screen.getByText("Réinitialiser"));
+    expect(await screen.findByRole("heading", { name: /Réinitialiser le mot de passe/ })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^Nouveau mot de passe/), {
+      target: { value: "nouveaumdp123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Réinitialiser le mot de passe" }));
+
+    await waitFor(() =>
+      expect(apiRequest).toHaveBeenCalledWith("/utilisateurs/t1/reinitialiser-mot-de-passe", {
+        method: "PATCH",
+        body: { motDePasse: "nouveaumdp123" },
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("bloque la reinitialisation localement si le mot de passe est trop court", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    await screen.findByText("Jean Koffi");
+
+    fireEvent.click(screen.getByText("Réinitialiser"));
+    await screen.findByRole("heading", { name: /Réinitialiser le mot de passe/ });
+
+    fireEvent.change(screen.getByLabelText(/^Nouveau mot de passe/), { target: { value: "court" } });
+    fireEvent.click(screen.getByRole("button", { name: "Réinitialiser le mot de passe" }));
+
+    expect(
+      await screen.findByText("Le mot de passe doit contenir au moins 8 caractères."),
+    ).toBeInTheDocument();
+    expect(apiRequest).not.toHaveBeenCalledWith(
+      expect.stringContaining("/reinitialiser-mot-de-passe"),
+      expect.anything(),
+    );
+  });
 });

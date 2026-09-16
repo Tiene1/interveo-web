@@ -1,4 +1,4 @@
-import { UserX } from "lucide-react";
+import { KeyRound, UserX } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { formatDateTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
@@ -30,18 +30,23 @@ function PuceStatutCompte({ actif }: { actif: boolean }) {
 interface TechniciensTableProps {
   techniciens: CompteTechnicien[];
   onDesactiver: (technicien: CompteTechnicien) => void;
+  onReinitialiserMotDePasse: (technicien: CompteTechnicien) => void;
 }
 
-export function TechniciensTable({ techniciens, onDesactiver }: TechniciensTableProps) {
+export function TechniciensTable({
+  techniciens,
+  onDesactiver,
+  onReinitialiserMotDePasse,
+}: TechniciensTableProps) {
   return (
     <table className="w-full border-collapse text-[13px]">
       <thead>
         <tr>
-          <th className={`${TH_CLASSES} w-[34%] pl-0`}>Nom</th>
-          <th className={`${TH_CLASSES} w-[22%]`}>Identifiant</th>
-          <th className={`${TH_CLASSES} w-[120px]`}>Statut</th>
-          <th className={`${TH_CLASSES} w-[150px]`}>Créé le</th>
-          <th className={`${TH_CLASSES} w-[140px] pr-0`} />
+          <th className={`${TH_CLASSES} w-[30%] pl-0`}>Nom</th>
+          <th className={`${TH_CLASSES} w-[18%]`}>Identifiant</th>
+          <th className={`${TH_CLASSES} w-[110px]`}>Statut</th>
+          <th className={`${TH_CLASSES} w-[130px]`}>Créé le</th>
+          <th className={`${TH_CLASSES} w-[220px] pr-0`} />
         </tr>
       </thead>
       <tbody>
@@ -67,12 +72,18 @@ export function TechniciensTable({ techniciens, onDesactiver }: TechniciensTable
               {formatDateTime(technicien.creeLe)}
             </td>
             <td className={`${TD_CLASSES} pr-0 text-right`}>
-              {technicien.actif && (
-                <Button variant="ghost" size="sm" onClick={() => onDesactiver(technicien)}>
-                  <UserX size={14} strokeWidth={1.75} />
-                  Désactiver
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => onReinitialiserMotDePasse(technicien)}>
+                  <KeyRound size={14} strokeWidth={1.75} />
+                  Réinitialiser
                 </Button>
-              )}
+                {technicien.actif && (
+                  <Button variant="ghost" size="sm" onClick={() => onDesactiver(technicien)}>
+                    <UserX size={14} strokeWidth={1.75} />
+                    Désactiver
+                  </Button>
+                )}
+              </div>
             </td>
           </tr>
         ))}
