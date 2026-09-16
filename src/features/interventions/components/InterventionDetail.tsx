@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, RotateCw, Trash2, XCircle } from "lucide-react";
+import { Download, Pencil, RotateCw, Trash2, XCircle } from "lucide-react";
 import { BoutonRetour } from "@/components/ui/BoutonRetour";
 import { Button } from "@/components/ui/Button";
 import { StatePanel } from "@/components/ui/StatePanel";
@@ -15,6 +15,7 @@ import { useAnnulerIntervention } from "../hooks/useAnnulerIntervention";
 import { useIntervention } from "../hooks/useIntervention";
 import { useSupprimerIntervention } from "../hooks/useSupprimerIntervention";
 import { libelleTypeEquipement } from "../lib/typeEquipement";
+import { genererPdfIntervention } from "../lib/pdf";
 import type { Photo } from "../types/intervention";
 import { ConfirmationAnnulationModal } from "./ConfirmationAnnulationModal";
 import { ConfirmationSuppressionModal } from "./ConfirmationSuppressionModal";
@@ -146,22 +147,30 @@ export function InterventionDetail({ id }: { id: string }) {
             )}
           </div>
         </div>
-        {peutAnnuler && (
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <Link href={`/interventions/modifier?id=${data.id}`}>
-              <Button variant="secondary" size="sm">
-                <Pencil size={14} strokeWidth={1.75} />
-                Modifier
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => genererPdfIntervention(data).save("rapport-intervention.pdf")}
+          >
+            <Download size={14} strokeWidth={1.75} />
+            Exporter PDF
+          </Button>
+          {peutAnnuler && (
+            <>
+              <Link href={`/interventions/modifier?id=${data.id}`}>
+                <Button variant="secondary" size="sm">
+                  <Pencil size={14} strokeWidth={1.75} />
+                  Modifier
+                </Button>
+              </Link>
+              <Button variant="danger-outline" size="sm" onClick={() => setModaleOuverte(true)}>
+                <XCircle size={14} strokeWidth={1.75} />
+                Annuler l&apos;intervention
               </Button>
-            </Link>
-            <Button variant="danger-outline" size="sm" onClick={() => setModaleOuverte(true)}>
-              <XCircle size={14} strokeWidth={1.75} />
-              Annuler l&apos;intervention
-            </Button>
-          </div>
-        )}
-        {peutSupprimer && (
-          <div className="flex flex-shrink-0 items-center gap-2">
+            </>
+          )}
+          {peutSupprimer && (
             <Button
               variant="danger-outline"
               size="sm"
@@ -170,8 +179,8 @@ export function InterventionDetail({ id }: { id: string }) {
               <Trash2 size={14} strokeWidth={1.75} />
               Supprimer
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-[240px_1fr] gap-14 pt-8">

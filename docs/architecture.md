@@ -20,6 +20,7 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 | US3.4 | Interventions (liste) | Filtre « Période » (Du/Au, sur date prévue), panneau « Filtres » (**Nice to have promue**) |
 | US3.8 | Interventions (liste) | Recherche mot-clé (adresse/motif/problème/travaux), même panneau « Filtres » (**Nice to have promue**) |
 | US3.10 | Interventions (liste) | Export CSV de la liste filtrée (`;`, BOM UTF-8, libellés français) (**Nice to have promue**) |
+| US3.9 | Détail intervention | Export PDF texte (sans photos, décidé avec Cédric), généré côté client (**Nice to have promue**) |
 | US1.1 | Nouvelle intervention | Nom du client, date et heure prévues, technicien |
 | US1.8 | Nouvelle intervention | Adresse, téléphone 1, téléphone 2 (optionnel), géolocalisation (optionnel) |
 | US1.3 | Nouvelle intervention | Liste déroulante technicien alimentée par `GET /utilisateurs?role=TECHNICIEN&actif=true` |
@@ -137,6 +138,15 @@ Téléchargement en JSON + Blob côté client plutôt qu'en `StreamableFile` cô
 
 Backend : refactor mineur avant l'ajout — la construction du `where` Prisma (`list()`) a été extraite dans `construireWhere()`, réutilisée telle quelle par la nouvelle `InterventionsRepository.listPourExport()` (mêmes filtres, sans `skip`/`take`) pour ne jamais dupliquer la logique de filtrage entre liste paginée et export. `InterventionsController.exporter()` déclaré **avant** `detail(':id')` : sinon `ParseUUIDPipe` intercepte `"export"` comme un id invalide (400) avant même d'atteindre la bonne route — piège classique de routing Express/Nest avec un segment littéral après un segment paramétré.
 
+### Export PDF du détail (US3.9, promu le 2026-09-16)
+Cinquième ticket Nice to have, deuxième et dernier du bloc « Exports ». **Portée décidée avec Cédric avant d'implémenter** (`AskUserQuestion`, le CDC ne précisait pas si les photos avant/après devaient être intégrées) : PDF **texte seul**, sans photos — client, adresse, téléphone(s), géolocalisation, dates, technicien, statut, type d'équipement, motif signalé, problème constaté, travaux réalisés. Les photos restent consultables uniquement dans l'application.
+
+**Génération entièrement côté client** (nouvelle dépendance `jspdf`, aucun changement backend) : `features/interventions/lib/pdf.ts`, `genererPdfIntervention()` construit le document à partir des données déjà chargées par `useIntervention()` sur l'écran de détail — aucun appel réseau supplémentaire, contrairement à l'export CSV qui doit re-fetch une liste non paginée. Réutilise les mêmes fonctions de libellé que le reste de l'écran (`libelleStatut()`, `libelleTypeEquipement()`, `formatDateTime()`, `nonRenseigne()`), aucune duplication de logique de présentation. Bouton « Exporter PDF » toujours visible dans l'en-tête du détail (contrairement à « Modifier »/« Annuler »/« Supprimer », conditionnés au statut) : un rapport doit pouvoir être exporté quel que soit l'état de l'intervention.
+
+**Choix architectural : PDF généré côté web, pas côté backend** (à la différence de ce qu'un premier réflexe suggérait — `pdfkit` côté NestJS, dans la même veine que `StreamableFile` pour les photos). Écarté une fois réalisé que `GET /interventions/:id` renvoie déjà tout le nécessaire (`InterventionDetail`, technicien inclus) : générer le PDF côté client évite un nouvel endpoint, une nouvelle dépendance backend, et reste cohérent avec le principe déjà posé pour le CSV (US3.10) — le backend ne porte jamais de libellé français, cette responsabilité reste entièrement dans `web/`.
+
+`jspdf@^4.2.1` installé (`npm install jspdf`), aucune dépendance native, fonctionne aussi bien en environnement de test (Vitest/jsdom) qu'en navigateur réel — vérifié directement (`doc.output("datauristring")` commence par `data:application/pdf`). Script `postinstall` d'une dépendance transitive (`core-js@3.50.0`) inspecté avant approbation (`npm approve-scripts`) : bannière de soutien au projet, inoffensif, comportement documenté et connu de l'écosystème JS.
+
 ### Menu déroulant personnalisé (`components/ui/Select.tsx`) — 2026-09-14
 Le `<select>` natif (filtre Technicien, champ Technicien assigné du formulaire) ouvre un menu dessiné par le système d'exploitation, impossible à restyler pour coller au design system — constat Cédric ("pas quelque chose de générique"). Reconstruit à la main (aucune nouvelle dépendance, ni Radix ni Headless UI) : un bouton déclencheur (`role="combobox"`, `aria-expanded`/`aria-controls`/`aria-haspopup`) et un panneau `role="listbox"` positionné en absolu, coché sur l'option sélectionnée. Navigation clavier (flèches, Entrée, Échap), fermeture au clic extérieur. Deux variantes visuelles pour un seul moteur d'interaction : `variant="field"` (soulignement + icône, même gabarit que `Champ` dans `InterventionForm.tsx`) et `variant="inline"` (libellé + valeur + chevron, sans bordure visible par défaut, pour `InterventionsFiltres.tsx`). Remplace l'ancien `Select.tsx` (wrapper de `<select>` natif jamais branché nulle part) au même emplacement.
 
@@ -206,7 +216,7 @@ Cédric a demandé la suppression définitive pour les interventions Annulées c
 ## 5. Hors périmètre de l'app web pour le MVP
 
 - Les filtres par état (US3.5), par période (US3.4) et la recherche par mot-clé (US3.8) sont construits, cf. section 4.
-- Export PDF du détail (US3.9). L'export CSV de la liste (US3.10) est construit, cf. section 4.
+- Les exports PDF du détail (US3.9) et CSV de la liste (US3.10) sont construits, cf. section 4.
 - Écrans de gestion des comptes techniciens (US4.5 à US4.9).
 - Champ « type d'équipement » dans le formulaire (US2.4 Nice to have, non promue).
 - Toute consultation mobile pour M. Kouassi.

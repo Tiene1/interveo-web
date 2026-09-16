@@ -16,6 +16,21 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
+const { pdfSave } = vi.hoisted(() => ({ pdfSave: vi.fn() }));
+vi.mock("jspdf", () => ({
+  jsPDF: vi.fn().mockImplementation(function () {
+    return {
+      setFont: vi.fn(),
+      setFontSize: vi.fn(),
+      setLineWidth: vi.fn(),
+      line: vi.fn(),
+      text: vi.fn(),
+      splitTextToSize: vi.fn().mockReturnValue(["ligne"]),
+      save: pdfSave,
+    };
+  }),
+}));
+
 const intervention: InterventionDetailType = {
   id: "3915b537-5d7a-40b7-be54-87578e11be91",
   nomClient: "Hôtel Ivoire",
@@ -63,6 +78,15 @@ describe("InterventionDetail", () => {
   beforeEach(() => {
     vi.mocked(apiRequest).mockReset();
     push.mockReset();
+    pdfSave.mockReset();
+  });
+
+  it("exporte un PDF au clic sur Exporter PDF", async () => {
+    renderDetail();
+
+    fireEvent.click(await screen.findByRole("button", { name: /Exporter PDF/ }));
+
+    expect(pdfSave).toHaveBeenCalledWith("rapport-intervention.pdf");
   });
 
   it("affiche le client, le technicien et les champs non renseignes", async () => {

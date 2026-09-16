@@ -12,30 +12,32 @@
     "test:cov": "vitest run --coverage"
   },
   "dependencies": {
-    "react": "^18",
-    "react-dom": "^18",
-    "next": "14.2.35",
     "@tanstack/react-query": "^5.102.8",
-    "lucide-react": "^1.45.0"
+    "jspdf": "^4.2.1",
+    "lucide-react": "^1.45.0",
+    "next": "14.2.35",
+    "react": "^18",
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^24.0.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
-    "vitest": "^5.0.0",
-    "@vitest/coverage-v8": "^5.0.0",
-    "@vitejs/plugin-react": "^6.1.1",
-    "@testing-library/react": "^16.3.3",
-    "@testing-library/jest-dom": "^7.0.1",
     "jsdom": "^30.0.1",
-    "vite-tsconfig-paths": "^5.1.4"
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^5.0.0"
   },
   "allowScripts": {
-    "unrs-resolver@1.12.2": true
+    "unrs-resolver@1.12.2": true,
+    "core-js@3.50.0": true
   }
 }
