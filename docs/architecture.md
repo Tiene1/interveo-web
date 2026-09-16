@@ -21,6 +21,7 @@ Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle comm
 | US3.8 | Interventions (liste) | Recherche mot-clé (adresse/motif/problème/travaux), même panneau « Filtres » (**Nice to have promue**) |
 | US3.10 | Interventions (liste) | Export CSV de la liste filtrée (`;`, BOM UTF-8, libellés français) (**Nice to have promue**) |
 | US3.9 | Détail intervention | Export PDF texte (sans photos, décidé avec Cédric), généré côté client (**Nice to have promue**) |
+| US4.6 | Techniciens (liste) | Tableau des comptes techniciens, actifs et inactifs (lecture seule pour ce ticket) (**Nice to have promue**) |
 | US1.1 | Nouvelle intervention | Nom du client, date et heure prévues, technicien |
 | US1.8 | Nouvelle intervention | Adresse, téléphone 1, téléphone 2 (optionnel), géolocalisation (optionnel) |
 | US1.3 | Nouvelle intervention | Liste déroulante technicien alimentée par `GET /utilisateurs?role=TECHNICIEN&actif=true` |
@@ -147,6 +148,17 @@ Cinquième ticket Nice to have, deuxième et dernier du bloc « Exports ». **Po
 
 `jspdf@^4.2.1` installé (`npm install jspdf`), aucune dépendance native, fonctionne aussi bien en environnement de test (Vitest/jsdom) qu'en navigateur réel — vérifié directement (`doc.output("datauristring")` commence par `data:application/pdf`). Script `postinstall` d'une dépendance transitive (`core-js@3.50.0`) inspecté avant approbation (`npm approve-scripts`) : bannière de soutien au projet, inoffensif, comportement documenté et connu de l'écosystème JS.
 
+### Comptes techniciens (US4.6, promu le 2026-09-16)
+Sixième ticket Nice to have, premier du bloc « Comptes techniciens » (US4.6 liste → US4.5 créer → US4.7 désactiver → US4.9 réinitialiser mot de passe, dans cet ordre). **Ticket volontairement limité à la lecture seule** : les actions (créer, désactiver, réinitialiser) sont des tickets séparés, pas ajoutées par anticipation.
+
+**Aucun changement backend** : `GET /utilisateurs?role=TECHNICIEN` existait déjà (US1.3/US3.3, alimente la liste déroulante d'attribution) et renvoie déjà tous les champs publics nécessaires (`nom`, `identifiant`, `actif`, `creeLe`). Nouveau module `features/techniciens/` (parallèle à `features/interventions/`) :
+- `hooks/useComptesTechniciens.ts` : **sans** `actif=true`, contrairement à `useTechniciens()` (`features/interventions`) qui filtre les actifs pour la liste déroulante — cet écran doit au contraire montrer les comptes désactivés (c'est tout l'intérêt d'un écran de gestion).
+- `components/TechniciensTable.tsx` : même grammaire visuelle que `InterventionsTable.tsx` (barre d'accent au survol, badge d'initiales, colonnes alignées), puce de statut Actif/Inactif calquée sur `StatusChip` mais écrite localement (concept différent, pas les 3 statuts d'intervention) — vert pour Actif, gris neutre pour Inactif (pas de rouge : une désactivation n'est pas une erreur, contrairement à une intervention Annulée).
+- `components/TechniciensListe.tsx` : même charpente que `InterventionsListe.tsx` (légende avec décompte réel, états chargement/erreur/vide), pas de filtres (4 techniciens dans le seed, inutile pour l'instant).
+- Route `app/techniciens/page.tsx` (`RouteGuard` + `AppShell`, même patron que `app/interventions/page.tsx`).
+
+Icône « Techniciens » du rail (`Rail.tsx`) : `<span aria-hidden>` inerte depuis le 2026-09-12 (cf. section 6), devient un vrai `<Link href="/techniciens">`. Fil d'Ariane « Administration / Techniciens » (nouveau, distinct d'« Opérations / Interventions ») : première fois que l'app a deux sections de navigation top-level, taxonomie introduite ici plutôt que réutiliser « Opérations » à tort.
+
 ### Menu déroulant personnalisé (`components/ui/Select.tsx`) — 2026-09-14
 Le `<select>` natif (filtre Technicien, champ Technicien assigné du formulaire) ouvre un menu dessiné par le système d'exploitation, impossible à restyler pour coller au design system — constat Cédric ("pas quelque chose de générique"). Reconstruit à la main (aucune nouvelle dépendance, ni Radix ni Headless UI) : un bouton déclencheur (`role="combobox"`, `aria-expanded`/`aria-controls`/`aria-haspopup`) et un panneau `role="listbox"` positionné en absolu, coché sur l'option sélectionnée. Navigation clavier (flèches, Entrée, Échap), fermeture au clic extérieur. Deux variantes visuelles pour un seul moteur d'interaction : `variant="field"` (soulignement + icône, même gabarit que `Champ` dans `InterventionForm.tsx`) et `variant="inline"` (libellé + valeur + chevron, sans bordure visible par défaut, pour `InterventionsFiltres.tsx`). Remplace l'ancien `Select.tsx` (wrapper de `<select>` natif jamais branché nulle part) au même emplacement.
 
@@ -217,7 +229,7 @@ Cédric a demandé la suppression définitive pour les interventions Annulées c
 
 - Les filtres par état (US3.5), par période (US3.4) et la recherche par mot-clé (US3.8) sont construits, cf. section 4.
 - Les exports PDF du détail (US3.9) et CSV de la liste (US3.10) sont construits, cf. section 4.
-- Écrans de gestion des comptes techniciens (US4.5 à US4.9).
+- Le tableau des comptes techniciens (US4.6) est construit, cf. section 4 — lecture seule, US4.5/US4.7/US4.9 (créer/désactiver/réinitialiser) restent hors périmètre pour l'instant.
 - Champ « type d'équipement » dans le formulaire (US2.4 Nice to have, non promue).
 - Toute consultation mobile pour M. Kouassi.
 
@@ -230,5 +242,5 @@ Décision du 2026-09-12, suite à un retour d'usage de Cédric. Trois icônes d�
 | Icône | Statut | Justification |
 |---|---|---|
 | Calendrier | **Retirée** | Vérifié dans `Docs/SIM_Abidjan_UserStories_01-09-26.docx` : ne correspond à aucune des 39 User Stories, ni MVP ni Nice to have. Pure invention décorative GenSpark, aucun besoin réel derrière. |
-| Techniciens | Gardée, inerte | US4.5 à US4.9 (créer/lister/désactiver un compte technicien, réinitialiser un mot de passe). Nice to have, mais besoin opérationnel réel : aujourd'hui la seule façon de gérer les comptes techniciens est le script `prisma/seed.ts`, aucun moyen de le faire sans toucher au code. |
+| Techniciens | **Fonctionnelle depuis le 2026-09-16** | US4.5 à US4.9 (créer/lister/désactiver un compte technicien, réinitialiser un mot de passe). US4.6 (liste) livrée en premier, cf. section « Comptes techniciens » ci-dessous — reste US4.5/US4.7/US4.9. Besoin opérationnel réel : jusqu'ici la seule façon de gérer les comptes techniciens était le script `prisma/seed.ts`, aucun moyen de le faire sans toucher au code. |
 | Paramètres | Gardée, inerte | Pas de User Story avant cette date. Ancrée sur **US4.8** (« changer son propre mot de passe », jamais rattachée à un écran auparavant), classée Nice to have. Pistes de réglages proposées par l'agent et à valider/décomposer par Cédric avant de devenir des User Stories formelles : nombre d'interventions par page (facile, actuellement fixé à 20 dans `PaginationDto`), coordonnées de l'entreprise pour les futurs exports PDF/CSV (US3.9/US3.10), durée de session avant déconnexion automatique (fixée en dur à 30 jours côté JWT backend), politique de conservation des photos (aucune limite aujourd'hui). Écarté : notifications email/SMS (infra hors périmètre MVP), personnalisation visuelle/logo, multi-comptes directeur, aucun besoin exprimé pour ces trois. |

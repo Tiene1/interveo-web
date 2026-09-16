@@ -27,9 +27,13 @@ export function Rail() {
       >
         <List size={18} strokeWidth={1.6} />
       </Link>
-      <span aria-hidden className={cn(ITEM_CLASSES, "cursor-default text-text-soft")}>
+      <Link
+        href="/techniciens"
+        aria-label="Techniciens"
+        className={cn(ITEM_CLASSES, "text-ink-1 hover:bg-line-soft")}
+      >
         <Users size={18} strokeWidth={1.6} />
-      </span>
+      </Link>
 
       <div className="flex-1" />
 

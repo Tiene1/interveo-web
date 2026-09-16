@@ -23,4 +23,10 @@ describe("Rail", () => {
     expect(getToken()).toBeNull();
     expect(push).toHaveBeenCalledWith("/connexion");
   });
+
+  it("le lien Techniciens pointe vers /techniciens (US4.6)", () => {
+    render(<Rail />);
+
+    expect(screen.getByLabelText("Techniciens")).toHaveAttribute("href", "/techniciens");
+  });
 });
