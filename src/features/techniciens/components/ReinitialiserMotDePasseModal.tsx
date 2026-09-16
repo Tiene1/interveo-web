@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/Field";
 import { Spinner } from "@/components/ui/Spinner";
 import { cn } from "@/lib/utils/cn";
 import type { CompteTechnicien } from "../types/utilisateur";
+import { validerMotDePasse } from "../lib/motDePasse";
 
 interface ReinitialiserMotDePasseModalProps {
   technicien: CompteTechnicien;
@@ -15,8 +16,6 @@ interface ReinitialiserMotDePasseModalProps {
   onSubmit: (motDePasse: string) => void;
   onClose: () => void;
 }
-
-const LONGUEUR_MIN_MOT_DE_PASSE = 8;
 
 export function ReinitialiserMotDePasseModal({
   technicien,
@@ -31,8 +30,9 @@ export function ReinitialiserMotDePasseModal({
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (motDePasse.length < LONGUEUR_MIN_MOT_DE_PASSE) {
-      setErreurLocale(`Le mot de passe doit contenir au moins ${LONGUEUR_MIN_MOT_DE_PASSE} caractères.`);
+    const erreurValidation = validerMotDePasse(motDePasse);
+    if (erreurValidation) {
+      setErreurLocale(erreurValidation);
       return;
     }
     setErreurLocale(undefined);
@@ -86,6 +86,11 @@ export function ReinitialiserMotDePasseModal({
             </button>
           </div>
         </Field>
+        {!erreurLocale && (
+          <p className="-mt-3 text-[12px] text-text-weak">
+            8 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial.
+          </p>
+        )}
 
         {erreur && (
           <p role="alert" className="flex items-center gap-2 text-[13px] font-medium text-danger">

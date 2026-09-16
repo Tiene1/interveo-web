@@ -8,13 +8,12 @@ import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { cn } from "@/lib/utils/cn";
 import { useCreerCompteTechnicien } from "../hooks/useCreerCompteTechnicien";
+import { validerMotDePasse } from "../lib/motDePasse";
 
 interface CreerCompteModalProps {
   onClose: () => void;
   onCreated: () => void;
 }
-
-const LONGUEUR_MIN_MOT_DE_PASSE = 8;
 
 export function CreerCompteModal({ onClose, onCreated }: CreerCompteModalProps) {
   const [nom, setNom] = useState("");
@@ -30,9 +29,8 @@ export function CreerCompteModal({ onClose, onCreated }: CreerCompteModalProps) 
     const erreurs: typeof erreursLocales = {};
     if (!nom.trim()) erreurs.nom = "Le nom est requis.";
     if (!identifiant.trim()) erreurs.identifiant = "L'identifiant est requis.";
-    if (motDePasse.length < LONGUEUR_MIN_MOT_DE_PASSE) {
-      erreurs.motDePasse = `Le mot de passe doit contenir au moins ${LONGUEUR_MIN_MOT_DE_PASSE} caractères.`;
-    }
+    const erreurMotDePasse = validerMotDePasse(motDePasse);
+    if (erreurMotDePasse) erreurs.motDePasse = erreurMotDePasse;
     setErreursLocales(erreurs);
     return Object.keys(erreurs).length === 0;
   }
@@ -110,6 +108,11 @@ export function CreerCompteModal({ onClose, onCreated }: CreerCompteModalProps) 
             </button>
           </div>
         </Field>
+        {!erreursLocales.motDePasse && (
+          <p className="-mt-3 text-[12px] text-text-weak">
+            8 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial.
+          </p>
+        )}
 
         {creerCompte.isError && (
           <p role="alert" className="flex items-center gap-2 text-[13px] font-medium text-danger">

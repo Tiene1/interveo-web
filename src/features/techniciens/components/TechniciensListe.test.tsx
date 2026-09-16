@@ -107,13 +107,13 @@ describe("TechniciensListe", () => {
     fireEvent.click(screen.getByText("Créer un compte"));
     fireEvent.change(screen.getByLabelText(/^Nom/), { target: { value: "Nouveau Technicien" } });
     fireEvent.change(screen.getByLabelText(/^Identifiant/), { target: { value: "nouveau" } });
-    fireEvent.change(screen.getByLabelText(/^Mot de passe/), { target: { value: "motdepasse123" } });
+    fireEvent.change(screen.getByLabelText(/^Mot de passe/), { target: { value: "Motdepasse123!" } });
     fireEvent.click(screen.getByText("Créer le compte"));
 
     await waitFor(() =>
       expect(apiRequest).toHaveBeenCalledWith("/utilisateurs", {
         method: "POST",
-        body: { nom: "Nouveau Technicien", identifiant: "nouveau", motDePasse: "motdepasse123" },
+        body: { nom: "Nouveau Technicien", identifiant: "nouveau", motDePasse: "Motdepasse123!" },
       }),
     );
     expect(await screen.findByText("Nouveau Technicien")).toBeInTheDocument();
@@ -156,10 +156,30 @@ describe("TechniciensListe", () => {
     fireEvent.click(screen.getAllByText("Créer un compte")[0]);
     fireEvent.change(screen.getByLabelText(/^Nom/), { target: { value: "Doublon" } });
     fireEvent.change(screen.getByLabelText(/^Identifiant/), { target: { value: "koffi" } });
-    fireEvent.change(screen.getByLabelText(/^Mot de passe/), { target: { value: "motdepasse123" } });
+    fireEvent.change(screen.getByLabelText(/^Mot de passe/), { target: { value: "Motdepasse123!" } });
     fireEvent.click(screen.getByText("Créer le compte"));
 
     expect(await screen.findByText("Cet identifiant est deja utilise")).toBeInTheDocument();
+  });
+
+  it("bloque la creation localement si le mot de passe manque de complexite", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([]);
+
+    renderListe();
+    await screen.findByText(/Aucun technicien/);
+
+    fireEvent.click(screen.getAllByText("Créer un compte")[0]);
+    fireEvent.change(screen.getByLabelText(/^Nom/), { target: { value: "X" } });
+    fireEvent.change(screen.getByLabelText(/^Identifiant/), { target: { value: "x" } });
+    fireEvent.change(screen.getByLabelText(/^Mot de passe/), { target: { value: "motdepasse123" } });
+    fireEvent.click(screen.getByText("Créer le compte"));
+
+    expect(
+      await screen.findByText(
+        "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial.",
+      ),
+    ).toBeInTheDocument();
+    expect(apiRequest).not.toHaveBeenCalledWith("/utilisateurs", expect.objectContaining({ method: "POST" }));
   });
 
   it("le bouton Desactiver n'apparait que pour les comptes actifs (US4.7)", async () => {
@@ -294,14 +314,14 @@ describe("TechniciensListe", () => {
     expect(await screen.findByRole("heading", { name: /Réinitialiser le mot de passe/ })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/^Nouveau mot de passe/), {
-      target: { value: "nouveaumdp123" },
+      target: { value: "Nouveaumdp123!" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Réinitialiser le mot de passe" }));
 
     await waitFor(() =>
       expect(apiRequest).toHaveBeenCalledWith("/utilisateurs/t1/reinitialiser-mot-de-passe", {
         method: "PATCH",
-        body: { motDePasse: "nouveaumdp123" },
+        body: { motDePasse: "Nouveaumdp123!" },
       }),
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -331,6 +351,39 @@ describe("TechniciensListe", () => {
 
     expect(
       await screen.findByText("Le mot de passe doit contenir au moins 8 caractères."),
+    ).toBeInTheDocument();
+    expect(apiRequest).not.toHaveBeenCalledWith(
+      expect.stringContaining("/reinitialiser-mot-de-passe"),
+      expect.anything(),
+    );
+  });
+
+  it("bloque la reinitialisation localement si le mot de passe manque de complexite", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    await screen.findByText("Jean Koffi");
+
+    fireEvent.click(screen.getByText("Réinitialiser"));
+    await screen.findByRole("heading", { name: /Réinitialiser le mot de passe/ });
+
+    fireEvent.change(screen.getByLabelText(/^Nouveau mot de passe/), { target: { value: "nouveaumdp123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Réinitialiser le mot de passe" }));
+
+    expect(
+      await screen.findByText(
+        "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial.",
+      ),
     ).toBeInTheDocument();
     expect(apiRequest).not.toHaveBeenCalledWith(
       expect.stringContaining("/reinitialiser-mot-de-passe"),
