@@ -59,7 +59,7 @@ function SousSectionPhotos({
   );
 }
 
-export function InterventionDetail({ id }: { id: string }) {
+export function InterventionDetail({ id, hrefListe }: { id: string; hrefListe: string }) {
   const router = useRouter();
   const [modaleOuverte, setModaleOuverte] = useState(false);
   const [modaleSuppressionOuverte, setModaleSuppressionOuverte] = useState(false);
@@ -75,7 +75,7 @@ export function InterventionDetail({ id }: { id: string }) {
   if (intervention.isError) {
     return (
       <div>
-        <BoutonRetour />
+        <BoutonRetour href={hrefListe} />
         <StatePanel
           tone="danger"
           kicker="Erreur de chargement"
@@ -104,7 +104,7 @@ export function InterventionDetail({ id }: { id: string }) {
 
   return (
     <div className="h-full overflow-y-auto pb-16">
-      <BoutonRetour />
+      <BoutonRetour href={hrefListe} />
 
       <div className="mt-4 flex items-start justify-between gap-6 border-b border-ink-1 pb-6">
         <div className="flex min-w-0 flex-1 flex-col gap-3.5">
@@ -302,7 +302,7 @@ export function InterventionDetail({ id }: { id: string }) {
           onCancel={() => setModaleSuppressionOuverte(false)}
           onConfirm={() =>
             supprimer.mutate(undefined, {
-              onSuccess: () => router.push("/interventions"),
+              onSuccess: () => router.push(hrefListe),
             })
           }
         />

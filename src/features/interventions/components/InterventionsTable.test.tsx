@@ -38,7 +38,7 @@ const intervention: Intervention = {
 
 describe("InterventionsTable", () => {
   it("affiche le client, le technicien et le statut", () => {
-    render(<InterventionsTable interventions={[intervention]} techniciens={[technicien]} />);
+    render(<InterventionsTable interventions={[intervention]} techniciens={[technicien]} retourQuery="" />);
 
     expect(screen.getByText("Hôtel Ivoire")).toBeInTheDocument();
     expect(screen.getByText("Koffi N'Guessan")).toBeInTheDocument();
@@ -46,14 +46,29 @@ describe("InterventionsTable", () => {
   });
 
   it("navigue vers le detail au clic sur une ligne", () => {
-    render(<InterventionsTable interventions={[intervention]} techniciens={[technicien]} />);
+    render(<InterventionsTable interventions={[intervention]} techniciens={[technicien]} retourQuery="" />);
 
     fireEvent.click(screen.getByText("Hôtel Ivoire"));
     expect(push).toHaveBeenCalledWith(`/interventions/detail?id=${intervention.id}`);
   });
 
+  it("transmet la query de la liste filtree au detail pour le bouton Retour", () => {
+    render(
+      <InterventionsTable
+        interventions={[intervention]}
+        techniciens={[technicien]}
+        retourQuery="statut=REALISEE&page=1"
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Hôtel Ivoire"));
+    expect(push).toHaveBeenCalledWith(
+      `/interventions/detail?id=${intervention.id}&retour=${encodeURIComponent("statut=REALISEE&page=1")}`,
+    );
+  });
+
   it("affiche un tiret quand le technicien est inconnu", () => {
-    render(<InterventionsTable interventions={[intervention]} techniciens={[]} />);
+    render(<InterventionsTable interventions={[intervention]} techniciens={[]} retourQuery="" />);
     expect(screen.getAllByText("—").length).toBeGreaterThan(0);
   });
 });

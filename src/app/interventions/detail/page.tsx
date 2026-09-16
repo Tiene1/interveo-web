@@ -15,12 +15,13 @@ import { InterventionDetail } from "@/features/interventions/components/Interven
 function DetailContenu() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+  const retour = searchParams.get("retour");
 
   if (!id) {
     return <p className="pt-10 text-sm text-danger">Intervention introuvable.</p>;
   }
 
-  return <InterventionDetail id={id} />;
+  return <InterventionDetail id={id} hrefListe={retour ? `/interventions?${retour}` : "/interventions"} />;
 }
 
 export default function InterventionDetailPage() {

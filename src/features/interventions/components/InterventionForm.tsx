@@ -149,9 +149,11 @@ function valider(state: FormState): Record<string, string> {
 interface InterventionFormProps {
   mode: "creer" | "modifier";
   intervention?: InterventionDetail;
+  /** Mode "creer" uniquement : ou revenir en cas d'Annuler (liste avec ses filtres actifs). */
+  hrefListe?: string;
 }
 
-export function InterventionForm({ mode, intervention }: InterventionFormProps) {
+export function InterventionForm({ mode, intervention, hrefListe = "/interventions" }: InterventionFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() =>
     intervention ? etatDepuisIntervention(intervention) : ETAT_INITIAL,
@@ -214,7 +216,7 @@ export function InterventionForm({ mode, intervention }: InterventionFormProps) 
   const estModification = mode === "modifier" && intervention;
   const dateReference = estModification ? new Date(intervention.creeLe) : new Date();
   const dateFormatee = dateReference.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const destinationAnnuler = estModification ? `/interventions/detail?id=${intervention.id}` : "/interventions";
+  const destinationAnnuler = estModification ? `/interventions/detail?id=${intervention.id}` : hrefListe;
   const libelleAction = estModification ? "d'enregistrer les modifications" : "de créer l'intervention";
 
   return (

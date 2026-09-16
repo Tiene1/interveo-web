@@ -59,7 +59,7 @@ const intervention: InterventionDetailType = {
   },
 };
 
-function renderDetail(data: InterventionDetailType = intervention) {
+function renderDetail(data: InterventionDetailType = intervention, hrefListe = "/interventions") {
   vi.mocked(apiRequest).mockImplementation((path: string) => {
     if (path.includes("/interventions/") && !path.includes("PATCH")) {
       return Promise.resolve(data);
@@ -69,7 +69,7 @@ function renderDetail(data: InterventionDetailType = intervention) {
   const queryClient = createQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      <InterventionDetail id={data.id} />
+      <InterventionDetail id={data.id} hrefListe={hrefListe} />
     </QueryClientProvider>,
   );
 }
@@ -169,5 +169,13 @@ describe("InterventionDetail", () => {
       ),
     );
     await waitFor(() => expect(push).toHaveBeenCalledWith("/interventions"));
+  });
+
+  it("le bouton Retour pointe vers la liste avec ses filtres actifs (hrefListe)", async () => {
+    renderDetail(intervention, "/interventions?statut=REALISEE");
+    await screen.findByRole("heading", { level: 1, name: "Hôtel Ivoire" });
+
+    const lien = screen.getByText("Retour").closest("a");
+    expect(lien).toHaveAttribute("href", "/interventions?statut=REALISEE");
   });
 });

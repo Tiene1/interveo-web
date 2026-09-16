@@ -23,11 +23,14 @@ function initiales(nom: string): string {
 interface InterventionsTableProps {
   interventions: Intervention[];
   techniciens: Technicien[];
+  /** Query de la liste filtree courante, transmise au detail pour que son bouton Retour y revienne. */
+  retourQuery: string;
 }
 
-export function InterventionsTable({ interventions, techniciens }: InterventionsTableProps) {
+export function InterventionsTable({ interventions, techniciens, retourQuery }: InterventionsTableProps) {
   const router = useRouter();
   const nomTechnicien = (id: string) => techniciens.find((technicien) => technicien.id === id)?.nom ?? "—";
+  const suffixeRetour = retourQuery ? `&retour=${encodeURIComponent(retourQuery)}` : "";
 
   return (
     <table className="w-full border-collapse text-[13px]">
@@ -44,7 +47,7 @@ export function InterventionsTable({ interventions, techniciens }: Interventions
         {interventions.map((intervention) => (
           <tr
             key={intervention.id}
-            onClick={() => router.push(`/interventions/detail?id=${intervention.id}`)}
+            onClick={() => router.push(`/interventions/detail?id=${intervention.id}${suffixeRetour}`)}
             className="group cursor-pointer transition-colors hover:bg-line-soft"
           >
             <td className={`${TD_CLASSES} relative pl-0`}>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Download, Plus, RotateCw } from "lucide-react";
 import { apiRequest } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
@@ -27,12 +28,15 @@ const OPTIONS_STATUT = [
 ];
 
 export function InterventionsListe() {
-  const [page, setPage] = useState(1);
-  const [technicienId, setTechnicienId] = useState("");
-  const [statut, setStatut] = useState("");
-  const [dateDebut, setDateDebut] = useState("");
-  const [dateFin, setDateFin] = useState("");
-  const [motCle, setMotCle] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [page, setPage] = useState(() => Number(searchParams.get("page")) || 1);
+  const [technicienId, setTechnicienId] = useState(() => searchParams.get("technicienId") ?? "");
+  const [statut, setStatut] = useState(() => searchParams.get("statut") ?? "");
+  const [dateDebut, setDateDebut] = useState(() => searchParams.get("dateDebut") ?? "");
+  const [dateFin, setDateFin] = useState(() => searchParams.get("dateFin") ?? "");
+  const [motCle, setMotCle] = useState(() => searchParams.get("motCle") ?? "");
   const motCleDebounce = useDebouncedValue(motCle);
   const filtreActif =
     technicienId !== "" ||
@@ -40,6 +44,29 @@ export function InterventionsListe() {
     dateDebut !== "" ||
     dateFin !== "" ||
     motCle !== "";
+
+  /**
+   * Retour de Cedric le 2026-09-16 : filtrer puis ouvrir une intervention
+   * (ou en creer une) puis revenir en arriere reinitialisait la liste. La
+   * query de "/interventions" reflete desormais toujours les filtres actifs
+   * (remplacee, jamais empilee dans l'historique), et "Nouvelle intervention"
+   * / la navigation vers le detail transmettent cette query en `retour` pour
+   * que le bouton Retour de ces ecrans y revienne telle quelle.
+   */
+  const queryFiltre = construireParamsFiltre({
+    page,
+    technicienId,
+    statut,
+    dateDebut,
+    dateFin,
+    motCle: motCleDebounce,
+  }).toString();
+  const hrefNouvelle = `/interventions/nouvelle${queryFiltre ? `?retour=${encodeURIComponent(queryFiltre)}` : ""}`;
+
+  useEffect(() => {
+    router.replace(`/interventions${queryFiltre ? `?${queryFiltre}` : ""}`, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryFiltre]);
 
   const interventions = useInterventions({
     page,
@@ -146,7 +173,7 @@ export function InterventionsListe() {
               {exportEnCours ? <Spinner /> : <Download size={14} strokeWidth={1.75} />}
               Exporter CSV
             </Button>
-            <Link href="/interventions/nouvelle">
+            <Link href={hrefNouvelle}>
               <Button variant="primary" size="sm">
                 <Plus size={14} strokeWidth={1.75} />
                 Nouvelle intervention
@@ -230,7 +257,7 @@ export function InterventionsListe() {
             }
             description="Commencez par créer votre première intervention. Vous pourrez ensuite l'attribuer à un technicien et suivre son avancement depuis cette page."
             actions={
-              <Link href="/interventions/nouvelle">
+              <Link href={hrefNouvelle}>
                 <Button variant="primary" size="sm">
                   <Plus size={14} strokeWidth={1.75} />
                   Nouvelle intervention
@@ -244,6 +271,7 @@ export function InterventionsListe() {
           <InterventionsTable
             interventions={interventions.data.data}
             techniciens={techniciens.data ?? []}
+            retourQuery={queryFiltre}
           />
         )}
       </div>
