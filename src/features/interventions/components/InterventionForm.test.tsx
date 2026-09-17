@@ -87,6 +87,24 @@ describe("InterventionForm (creation)", () => {
     expect(screen.getByText("Sélectionnez un technicien")).toBeInTheDocument();
   });
 
+  it("filtre les techniciens via la barre de recherche du selecteur", async () => {
+    mockApi();
+    renderForm();
+    await attendreTechniciensCharges();
+
+    fireEvent.click(screen.getByLabelText(/Technicien assigné/));
+    expect(await screen.findByRole("option", { name: "Awa Traore" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Koffi N'Guessan" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Rechercher un technicien…"), { target: { value: "awa" } });
+
+    expect(screen.queryByRole("option", { name: "Koffi N'Guessan" })).not.toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Awa Traore" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("option", { name: "Awa Traore" }));
+    expect(screen.getByLabelText(/Technicien assigné/)).toHaveTextContent("Awa Traore");
+  });
+
   it("cree l'intervention et redirige vers le detail lorsque le formulaire est valide", async () => {
     mockApi({ id: "nouvelle-id" });
     renderForm();

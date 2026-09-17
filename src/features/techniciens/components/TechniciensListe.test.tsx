@@ -55,6 +55,98 @@ describe("TechniciensListe", () => {
     expect(screen.getByText(/techniciens au total/)).toBeInTheDocument();
   });
 
+  it("filtre par recherche (nom ou identifiant) et reinitialise", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+      {
+        id: "t2",
+        nom: "Awa Traore",
+        identifiant: "awa",
+        role: "TECHNICIEN",
+        actif: false,
+        creeLe: "2026-09-02T00:00:00.000Z",
+        misAJourLe: "2026-09-02T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    expect(await screen.findByText("Jean Koffi")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Rechercher un technicien"), { target: { value: "awa" } });
+
+    expect(screen.queryByText("Jean Koffi")).not.toBeInTheDocument();
+    expect(screen.getByText("Awa Traore")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("Réinitialiser les filtres"));
+
+    expect(await screen.findByText("Jean Koffi")).toBeInTheDocument();
+    expect(screen.getByText("Awa Traore")).toBeInTheDocument();
+  });
+
+  it("filtre par statut actif/inactif", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+      {
+        id: "t2",
+        nom: "Awa Traore",
+        identifiant: "awa",
+        role: "TECHNICIEN",
+        actif: false,
+        creeLe: "2026-09-02T00:00:00.000Z",
+        misAJourLe: "2026-09-02T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    expect(await screen.findByText("Jean Koffi")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Filtrer par statut" }));
+    fireEvent.click(screen.getByRole("option", { name: "Inactifs" }));
+
+    expect(screen.queryByText("Jean Koffi")).not.toBeInTheDocument();
+    expect(screen.getByText("Awa Traore")).toBeInTheDocument();
+  });
+
+  it("affiche un message distinct quand un filtre ne trouve aucun technicien", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    expect(await screen.findByText("Jean Koffi")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Rechercher un technicien"), { target: { value: "introuvable" } });
+
+    expect(await screen.findByText(/ne correspond/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Réinitialiser les filtres"));
+
+    expect(await screen.findByText("Jean Koffi")).toBeInTheDocument();
+  });
+
   it("appelle GET /utilisateurs?role=TECHNICIEN sans filtre actif (contrairement au selecteur d'attribution)", async () => {
     vi.mocked(apiRequest).mockResolvedValue([]);
 

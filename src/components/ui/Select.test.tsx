@@ -78,4 +78,66 @@ describe("Select", () => {
 
     expect(onChange).toHaveBeenCalledWith("tech-2");
   });
+
+  describe("avecRecherche", () => {
+    it("n'affiche pas de champ de recherche par defaut", () => {
+      render(<Select value="" onChange={vi.fn()} options={options} ariaLabel="Technicien" />);
+      fireEvent.click(screen.getByLabelText("Technicien"));
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+
+    it("affiche un champ de recherche et filtre les options par libelle", () => {
+      render(
+        <Select
+          value=""
+          onChange={vi.fn()}
+          options={options}
+          ariaLabel="Technicien"
+          avecRecherche
+          rechercheLabel="Rechercher un technicien…"
+        />,
+      );
+      fireEvent.click(screen.getByLabelText("Technicien"));
+      expect(screen.getByRole("option", { name: "Koffi N'Guessan" })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Awa Traore" })).toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText("Rechercher un technicien…"), { target: { value: "awa" } });
+
+      expect(screen.queryByRole("option", { name: "Koffi N'Guessan" })).not.toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Awa Traore" })).toBeInTheDocument();
+    });
+
+    it("affiche Aucun resultat quand la recherche ne correspond a rien", () => {
+      render(<Select value="" onChange={vi.fn()} options={options} ariaLabel="Technicien" avecRecherche />);
+      fireEvent.click(screen.getByLabelText("Technicien"));
+
+      fireEvent.change(screen.getByRole("textbox"), { target: { value: "introuvable" } });
+
+      expect(screen.getByText("Aucun résultat")).toBeInTheDocument();
+      expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    });
+
+    it("selectionne l'option filtree surlignee avec Entree depuis le champ de recherche", () => {
+      const onChange = vi.fn();
+      render(<Select value="" onChange={onChange} options={options} ariaLabel="Technicien" avecRecherche />);
+      fireEvent.click(screen.getByLabelText("Technicien"));
+
+      const champRecherche = screen.getByRole("textbox");
+      fireEvent.change(champRecherche, { target: { value: "awa" } });
+      fireEvent.keyDown(champRecherche, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith("tech-2");
+    });
+
+    it("vide la recherche a la fermeture du menu", () => {
+      render(<Select value="" onChange={vi.fn()} options={options} ariaLabel="Technicien" avecRecherche />);
+      const bouton = screen.getByLabelText("Technicien");
+      fireEvent.click(bouton);
+      fireEvent.change(screen.getByRole("textbox"), { target: { value: "awa" } });
+      fireEvent.keyDown(screen.getByRole("textbox"), { key: "Escape" });
+
+      fireEvent.click(bouton);
+      expect(screen.getByRole("option", { name: "Koffi N'Guessan" })).toBeInTheDocument();
+    });
+  });
 });

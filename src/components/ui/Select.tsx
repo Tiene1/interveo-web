@@ -23,6 +23,9 @@ interface SelectProps {
   error?: boolean;
   ariaLabel?: string;
   className?: string;
+  /** Ajoute une recherche texte en tete du panneau, pour les listes longues (ex. techniciens). */
+  avecRecherche?: boolean;
+  rechercheLabel?: string;
 }
 
 /**
@@ -45,20 +48,38 @@ export function Select({
   error,
   ariaLabel,
   className,
+  avecRecherche = false,
+  rechercheLabel = "Rechercher…",
 }: SelectProps) {
   const [ouvert, setOuvert] = useState(false);
   const [surligne, setSurligne] = useState(0);
+  const [recherche, setRecherche] = useState("");
   const racineRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Array<HTMLLIElement | null>>([]);
+  const rechercheRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
 
+  const optionsAffichees = avecRecherche
+    ? options.filter((option) => option.label.toLowerCase().includes(recherche.trim().toLowerCase()))
+    : options;
   const indexSelectionne = options.findIndex((option) => option.value === value);
   const optionSelectionnee = indexSelectionne >= 0 ? options[indexSelectionne] : undefined;
 
   useEffect(() => {
     if (!ouvert) return;
-    setSurligne(indexSelectionne >= 0 ? indexSelectionne : 0);
-  }, [ouvert, indexSelectionne]);
+    const indexDansAffichees = optionsAffichees.findIndex((option) => option.value === value);
+    setSurligne(indexDansAffichees >= 0 ? indexDansAffichees : 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ouvert]);
+
+  useEffect(() => {
+    setSurligne(0);
+  }, [recherche]);
+
+  useEffect(() => {
+    if (ouvert && avecRecherche) rechercheRef.current?.focus();
+    if (!ouvert) setRecherche("");
+  }, [ouvert, avecRecherche]);
 
   useEffect(() => {
     if (!ouvert) return;
@@ -95,13 +116,16 @@ export function Select({
       setOuvert(false);
     } else if (event.key === "ArrowDown") {
       event.preventDefault();
-      setSurligne((precedent) => Math.min(precedent + 1, options.length - 1));
+      setSurligne((precedent) => Math.min(precedent + 1, optionsAffichees.length - 1));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setSurligne((precedent) => Math.max(precedent - 1, 0));
-    } else if (event.key === "Enter" || event.key === " ") {
+    } else if (event.key === "Enter") {
       event.preventDefault();
-      if (options[surligne]) choisir(options[surligne].value);
+      if (optionsAffichees[surligne]) choisir(optionsAffichees[surligne].value);
+    } else if (event.key === " " && !avecRecherche) {
+      event.preventDefault();
+      if (optionsAffichees[surligne]) choisir(optionsAffichees[surligne].value);
     } else if (event.key === "Tab") {
       setOuvert(false);
     }
@@ -148,31 +172,46 @@ export function Select({
       </button>
 
       {ouvert && (
-        <ul
-          id={listboxId}
-          role="listbox"
-          className="absolute left-0 top-[calc(100%+6px)] z-20 max-h-64 min-w-full overflow-y-auto rounded-md border border-line bg-paper py-1 shadow-[0_12px_32px_-8px_rgba(15,23,42,.18)]"
-        >
-          {options.map((option, index) => (
-            <li
-              key={option.value}
-              ref={(node) => {
-                optionRefs.current[index] = node;
-              }}
-              role="option"
-              aria-selected={option.value === value}
-              onMouseEnter={() => setSurligne(index)}
-              onClick={() => choisir(option.value)}
-              className={cn(
-                "flex cursor-pointer items-center justify-between gap-3 whitespace-nowrap px-3 py-2 text-[13px] font-medium text-ink-1",
-                index === surligne && "bg-line-soft",
-              )}
-            >
-              {option.label}
-              {option.value === value && <Check size={13} strokeWidth={2.25} className="shrink-0 text-brand" />}
-            </li>
-          ))}
-        </ul>
+        <div className="absolute left-0 top-[calc(100%+6px)] z-20 min-w-full overflow-hidden rounded-md border border-line bg-paper shadow-[0_12px_32px_-8px_rgba(15,23,42,.18)]">
+          {avecRecherche && (
+            <div className="border-b border-line-soft px-3 py-2">
+              <input
+                ref={rechercheRef}
+                type="text"
+                value={recherche}
+                onChange={(event) => setRecherche(event.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder={rechercheLabel}
+                aria-label={rechercheLabel}
+                className="w-full min-w-[180px] border-0 bg-transparent text-[13px] text-ink-1 placeholder:text-text-weak focus:outline-none"
+              />
+            </div>
+          )}
+          <ul id={listboxId} role="listbox" className="max-h-64 overflow-y-auto py-1">
+            {optionsAffichees.length === 0 && (
+              <li className="px-3 py-2 text-[13px] italic text-text-weak">Aucun résultat</li>
+            )}
+            {optionsAffichees.map((option, index) => (
+              <li
+                key={option.value}
+                ref={(node) => {
+                  optionRefs.current[index] = node;
+                }}
+                role="option"
+                aria-selected={option.value === value}
+                onMouseEnter={() => setSurligne(index)}
+                onClick={() => choisir(option.value)}
+                className={cn(
+                  "flex cursor-pointer items-center justify-between gap-3 whitespace-nowrap px-3 py-2 text-[13px] font-medium text-ink-1",
+                  index === surligne && "bg-line-soft",
+                )}
+              >
+                {option.label}
+                {option.value === value && <Check size={13} strokeWidth={2.25} className="shrink-0 text-brand" />}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

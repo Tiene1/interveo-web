@@ -433,6 +433,8 @@ export function InterventionForm({ mode, intervention, hrefListe = "/interventio
                 placeholder="Choisir un technicien…"
                 error={Boolean(erreurs.technicienId)}
                 ariaLabel="Technicien assigné"
+                avecRecherche
+                rechercheLabel="Rechercher un technicien…"
                 options={(techniciens.data ?? []).map((technicien) => ({
                   value: technicien.id,
                   label: technicien.nom,
