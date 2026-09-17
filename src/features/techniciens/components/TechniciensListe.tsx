@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, RotateCw, Search } from "lucide-react";
+import { Plus, RotateCw, Search, Tag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { StatePanel } from "@/components/ui/StatePanel";
@@ -179,6 +179,7 @@ export function TechniciensListe() {
 
             <Select
               variant="inline"
+              icon={Tag}
               label="Statut"
               value={statutFiltre}
               onChange={setStatutFiltre}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Download, Plus, RotateCw } from "lucide-react";
+import { Download, Plus, RotateCw, Tag } from "lucide-react";
 import { apiRequest } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -137,6 +137,7 @@ export function InterventionsListe() {
               </h1>
               <Select
                 variant="inline"
+                icon={Tag}
                 value={statut}
                 onChange={(value) => {
                   setStatut(value);

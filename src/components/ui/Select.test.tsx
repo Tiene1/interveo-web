@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { Tag } from "lucide-react";
 import { Select } from "./Select";
 
 const options = [
@@ -77,6 +78,20 @@ describe("Select", () => {
     fireEvent.keyDown(bouton, { key: "Enter" });
 
     expect(onChange).toHaveBeenCalledWith("tech-2");
+  });
+
+  it("affiche l'icone en variant inline (2026-09-17, cf. web/docs/architecture.md)", () => {
+    const { container } = render(
+      <Select
+        variant="inline"
+        icon={Tag}
+        value=""
+        onChange={vi.fn()}
+        options={options}
+        ariaLabel="Filtrer par statut"
+      />,
+    );
+    expect(container.querySelector("svg.lucide-tag")).toBeInTheDocument();
   });
 
   describe("avecRecherche", () => {

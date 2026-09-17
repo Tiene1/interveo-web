@@ -17,6 +17,7 @@ interface SelectProps {
   id?: string;
   /** "field" : champ de formulaire pleine largeur (soulignement, icône). "inline" : bouton de filtre compact (libellé + valeur). */
   variant?: "field" | "inline";
+  /** Affichee avant le libelle/la valeur, dans les deux variantes. */
   icon?: LucideIcon;
   label?: string;
   placeholder?: string;
@@ -154,7 +155,7 @@ export function Select({
             : "flex cursor-pointer items-center gap-1.5 py-1.5 text-[13px] font-medium focus:outline-none"
         }
       >
-        {estField && Icon && <Icon size={14} strokeWidth={1.75} className="shrink-0 text-text-weak" />}
+        {Icon && <Icon size={estField ? 14 : 13} strokeWidth={1.75} className="shrink-0 text-text-weak" />}
         {!estField && label && <span className="font-medium text-text-weak">{label}</span>}
         <span
           className={cn(
