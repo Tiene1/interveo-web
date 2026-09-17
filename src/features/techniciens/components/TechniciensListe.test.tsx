@@ -373,6 +373,180 @@ describe("TechniciensListe", () => {
     );
   });
 
+  it("les boutons Reactiver et Supprimer n'apparaissent que pour les comptes inactifs", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t1",
+        nom: "Jean Koffi",
+        identifiant: "koffi",
+        role: "TECHNICIEN",
+        actif: true,
+        creeLe: "2026-09-01T00:00:00.000Z",
+        misAJourLe: "2026-09-01T00:00:00.000Z",
+      },
+      {
+        id: "t2",
+        nom: "Awa Traore",
+        identifiant: "awa",
+        role: "TECHNICIEN",
+        actif: false,
+        creeLe: "2026-09-02T00:00:00.000Z",
+        misAJourLe: "2026-09-02T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    await screen.findByText("Jean Koffi");
+
+    expect(screen.queryByRole("button", { name: "Réactiver" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Supprimer" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Réactiver" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Supprimer" })).toHaveLength(1);
+  });
+
+  it("reactive un compte au clic et rafraichit la liste", async () => {
+    let actif = false;
+    vi.mocked(apiRequest).mockImplementation((path: string, options?: { method?: string }) => {
+      if (options?.method === "PATCH") {
+        actif = true;
+        return Promise.resolve({
+          id: "t2",
+          nom: "Awa Traore",
+          identifiant: "awa",
+          role: "TECHNICIEN",
+          actif: true,
+          creeLe: "2026-09-02T00:00:00.000Z",
+          misAJourLe: "2026-09-17T00:00:00.000Z",
+        });
+      }
+      return Promise.resolve([
+        {
+          id: "t2",
+          nom: "Awa Traore",
+          identifiant: "awa",
+          role: "TECHNICIEN",
+          actif,
+          creeLe: "2026-09-02T00:00:00.000Z",
+          misAJourLe: "2026-09-02T00:00:00.000Z",
+        },
+      ]);
+    });
+
+    renderListe();
+    await screen.findByText("Awa Traore");
+
+    fireEvent.click(screen.getByRole("button", { name: "Réactiver" }));
+
+    await waitFor(() =>
+      expect(apiRequest).toHaveBeenCalledWith("/utilisateurs/t2/reactiver", { method: "PATCH" }),
+    );
+    await waitFor(() => expect(screen.getByText("Actif")).toBeInTheDocument());
+    expect(screen.queryByRole("button", { name: "Réactiver" })).not.toBeInTheDocument();
+  });
+
+  it("supprime un compte apres confirmation et rafraichit la liste", async () => {
+    let supprime = false;
+    vi.mocked(apiRequest).mockImplementation((path: string, options?: { method?: string }) => {
+      if (options?.method === "DELETE") {
+        supprime = true;
+        return Promise.resolve(undefined);
+      }
+      return Promise.resolve(
+        supprime
+          ? []
+          : [
+              {
+                id: "t2",
+                nom: "Awa Traore",
+                identifiant: "awa",
+                role: "TECHNICIEN",
+                actif: false,
+                creeLe: "2026-09-02T00:00:00.000Z",
+                misAJourLe: "2026-09-02T00:00:00.000Z",
+              },
+            ],
+      );
+    });
+
+    renderListe();
+    await screen.findByText("Awa Traore");
+
+    fireEvent.click(screen.getByRole("button", { name: "Supprimer" }));
+    expect(await screen.findByText(/Supprimer ce/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Supprimer définitivement"));
+
+    await waitFor(() =>
+      expect(apiRequest).toHaveBeenCalledWith("/utilisateurs/t2", { method: "DELETE" }),
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(await screen.findByText(/Aucun technicien/)).toBeInTheDocument();
+  });
+
+  it("annule la suppression sans appeler l'API", async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: "t2",
+        nom: "Awa Traore",
+        identifiant: "awa",
+        role: "TECHNICIEN",
+        actif: false,
+        creeLe: "2026-09-02T00:00:00.000Z",
+        misAJourLe: "2026-09-02T00:00:00.000Z",
+      },
+    ]);
+
+    renderListe();
+    await screen.findByText("Awa Traore");
+
+    fireEvent.click(screen.getByRole("button", { name: "Supprimer" }));
+    expect(await screen.findByText(/Supprimer ce/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Retour"));
+
+    expect(screen.queryByText(/Supprimer ce/)).not.toBeInTheDocument();
+    expect(apiRequest).not.toHaveBeenCalledWith("/utilisateurs/t2", expect.objectContaining({ method: "DELETE" }));
+  });
+
+  it("affiche l'erreur serveur 409 si le technicien a des interventions dans son historique", async () => {
+    vi.mocked(apiRequest).mockImplementation((path: string, options?: { method?: string }) => {
+      if (options?.method === "DELETE") {
+        return Promise.reject(
+          new ApiError(409, {
+            statusCode: 409,
+            message: "Ce technicien a des interventions dans son historique, suppression impossible",
+            error: "Conflict",
+            timestamp: "2026-09-17T00:00:00.000Z",
+            path: "/utilisateurs/t2",
+            method: "DELETE",
+          }),
+        );
+      }
+      return Promise.resolve([
+        {
+          id: "t2",
+          nom: "Awa Traore",
+          identifiant: "awa",
+          role: "TECHNICIEN",
+          actif: false,
+          creeLe: "2026-09-02T00:00:00.000Z",
+          misAJourLe: "2026-09-02T00:00:00.000Z",
+        },
+      ]);
+    });
+
+    renderListe();
+    await screen.findByText("Awa Traore");
+
+    fireEvent.click(screen.getByRole("button", { name: "Supprimer" }));
+    expect(await screen.findByText(/Supprimer ce/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Supprimer définitivement"));
+
+    expect(
+      await screen.findByText("Ce technicien a des interventions dans son historique, suppression impossible"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Awa Traore").length).toBeGreaterThan(0);
+  });
+
   it("reinitialise le mot de passe apres saisie valide (US4.9)", async () => {
     vi.mocked(apiRequest).mockImplementation((path: string, options?: { method?: string }) => {
       if (options?.method === "PATCH") {

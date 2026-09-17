@@ -7,9 +7,12 @@ import { Select } from "@/components/ui/Select";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useComptesTechniciens } from "../hooks/useComptesTechniciens";
 import { useDesactiverCompteTechnicien } from "../hooks/useDesactiverCompteTechnicien";
+import { useReactiverCompteTechnicien } from "../hooks/useReactiverCompteTechnicien";
+import { useSupprimerCompteTechnicien } from "../hooks/useSupprimerCompteTechnicien";
 import { useReinitialiserMotDePasse } from "../hooks/useReinitialiserMotDePasse";
 import { CreerCompteModal } from "./CreerCompteModal";
 import { ConfirmationDesactivationModal } from "./ConfirmationDesactivationModal";
+import { ConfirmationSuppressionCompteModal } from "./ConfirmationSuppressionCompteModal";
 import { ReinitialiserMotDePasseModal } from "./ReinitialiserMotDePasseModal";
 import { TechniciensTable } from "./TechniciensTable";
 import type { CompteTechnicien } from "../types/utilisateur";
@@ -34,6 +37,26 @@ function DesactivationConnectee({
       isPending={desactiver.isPending}
       onCancel={onClose}
       onConfirm={() => desactiver.mutate(undefined, { onSuccess: onClose })}
+    />
+  );
+}
+
+/** Meme raison que DesactivationConnectee : l'id cible n'est connu qu'a la selection. */
+function SuppressionConnectee({
+  technicien,
+  onClose,
+}: {
+  technicien: CompteTechnicien;
+  onClose: () => void;
+}) {
+  const supprimer = useSupprimerCompteTechnicien(technicien.id);
+  return (
+    <ConfirmationSuppressionCompteModal
+      technicien={technicien}
+      isPending={supprimer.isPending}
+      erreur={supprimer.error}
+      onCancel={onClose}
+      onConfirm={() => supprimer.mutate(undefined, { onSuccess: onClose })}
     />
   );
 }
@@ -91,8 +114,10 @@ function filtrerTechniciens(
 /** US4.6 (liste) + US4.5 (creation) + US4.7 (desactivation) + US4.9 (reinitialisation). */
 export function TechniciensListe() {
   const techniciens = useComptesTechniciens();
+  const reactiver = useReactiverCompteTechnicien();
   const [modaleCreationOuverte, setModaleCreationOuverte] = useState(false);
   const [technicienADesactiver, setTechnicienADesactiver] = useState<CompteTechnicien | null>(null);
+  const [technicienASupprimer, setTechnicienASupprimer] = useState<CompteTechnicien | null>(null);
   const [technicienAReinitialiser, setTechnicienAReinitialiser] = useState<CompteTechnicien | null>(null);
   const [recherche, setRecherche] = useState("");
   const [statutFiltre, setStatutFiltre] = useState("");
@@ -246,6 +271,8 @@ export function TechniciensListe() {
           <TechniciensTable
             techniciens={techniciensFiltres}
             onDesactiver={setTechnicienADesactiver}
+            onReactiver={(technicien) => reactiver.mutate(technicien.id)}
+            onSupprimer={setTechnicienASupprimer}
             onReinitialiserMotDePasse={setTechnicienAReinitialiser}
           />
         )}
@@ -262,6 +289,13 @@ export function TechniciensListe() {
         <DesactivationConnectee
           technicien={technicienADesactiver}
           onClose={() => setTechnicienADesactiver(null)}
+        />
+      )}
+
+      {technicienASupprimer && (
+        <SuppressionConnectee
+          technicien={technicienASupprimer}
+          onClose={() => setTechnicienASupprimer(null)}
         />
       )}
 
