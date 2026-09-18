@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Download, Plus, RotateCw, Tag } from "lucide-react";
+import { Download, Plus, RotateCw } from "lucide-react";
 import { apiRequest } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
@@ -20,13 +19,6 @@ import { InterventionsFiltresPanneau } from "./InterventionsFiltresPanneau";
 import { InterventionsTable } from "./InterventionsTable";
 import { InterventionsTableSkeleton } from "./InterventionsTableSkeleton";
 import { InterventionsPagination } from "./InterventionsPagination";
-
-const OPTIONS_STATUT = [
-  { value: "", label: "Toutes" },
-  { value: "PLANIFIEE", label: "Planifiées" },
-  { value: "REALISEE", label: "Réalisées" },
-  { value: "ANNULEE", label: "Annulées" },
-];
 
 export function InterventionsListe() {
   const router = useRouter();
@@ -136,22 +128,9 @@ export function InterventionsListe() {
 
         <div className="mb-5 flex items-end justify-between gap-6">
           <div className="flex min-w-0 flex-1 flex-col gap-3">
-            <div className="flex flex-wrap items-baseline gap-3.5">
-              <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
-                Interventions<span className="italic">.</span>
-              </h1>
-              <Select
-                variant="inline"
-                icon={Tag}
-                value={statut}
-                onChange={(value) => {
-                  setStatut(value);
-                  setPage(1);
-                }}
-                ariaLabel="Filtrer par statut"
-                options={OPTIONS_STATUT}
-              />
-            </div>
+            <h1 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.035em] text-ink-1">
+              Interventions<span className="italic">.</span>
+            </h1>
             {interventions.data && (
               <p className="max-w-[640px] text-sm leading-[1.5] text-text-soft">
                 <span className="font-semibold text-ink-1">{interventions.data.total}</span> interventions au
@@ -164,6 +143,17 @@ export function InterventionsListe() {
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
             <InterventionsFiltresPanneau
+              statut={statut}
+              onStatutChange={(value) => {
+                setStatut(value);
+                setPage(1);
+              }}
+              technicienId={technicienId}
+              onTechnicienIdChange={(value) => {
+                setTechnicienId(value);
+                setPage(1);
+              }}
+              techniciens={techniciens.data ?? []}
               dateDebut={dateDebut}
               onDateDebutChange={(value) => {
                 setDateDebut(value);
@@ -200,12 +190,6 @@ export function InterventionsListe() {
             setMotCle(value);
             setPage(1);
           }}
-          technicienId={technicienId}
-          onTechnicienIdChange={(value) => {
-            setTechnicienId(value);
-            setPage(1);
-          }}
-          techniciens={techniciens.data ?? []}
         />
       </div>
 

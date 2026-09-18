@@ -229,6 +229,7 @@ describe("InterventionsListe", () => {
     renderListe();
     expect(await screen.findByText("Hôtel Ivoire")).toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole("button", { name: /Filtres/ }));
     fireEvent.click(screen.getByRole("combobox", { name: "Filtrer par statut" }));
     fireEvent.click(screen.getByRole("option", { name: "Réalisées" }));
 
