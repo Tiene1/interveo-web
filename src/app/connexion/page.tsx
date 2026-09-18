@@ -6,11 +6,11 @@ export default function ConnexionPage() {
       <section className="flex flex-col justify-between gap-16 border-b border-line bg-paper-soft px-8 py-10 lg:border-b-0 lg:border-r lg:px-14">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-3 font-serif text-xl font-medium tracking-tight text-ink-1">
-            SIM
+            Interveo
             <span aria-hidden className="h-3.5 w-px bg-line-strong" />
           </span>
           <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-soft">
-            Interventions · Ivoire Maintenance
+            Suivi d&apos;interventions terrain
           </span>
         </div>
 
@@ -23,8 +23,8 @@ export default function ConnexionPage() {
             Piloter les interventions <span className="italic">terrain,</span> depuis le bureau.
           </h1>
           <p className="max-w-[400px] text-[15px] leading-[1.55] text-text-soft">
-            Créez, attribuez et suivez les interventions de maintenance technique — climatisation,
-            groupes électrogènes, électricité — depuis une interface unique.
+            Créez, attribuez et suivez les interventions techniques — électricité, sécurité
+            électronique, climatisation, domotique — depuis une interface unique.
           </p>
         </div>
 

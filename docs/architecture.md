@@ -1,9 +1,9 @@
-# architecture.md — Cible `web/` : back-office web SIM Interventions
+# architecture.md — Cible `web/` : back-office web Interveo
 
 Structure spécifique au dépôt `web/`. La fiche ADR complète et le socle commun sont dans `docs/ADR.md`, qui fait foi. Le contrat d'API (endpoints, corps) est décrit dans `backend/docs/architecture.md`, qui fait foi pour les types.
 
 - **Stack** : Next.js 14 (App Router), export statique, React Query, Tailwind.
-- **Utilisateur unique** : M. Kouassi, au bureau, en ligne. Pas d'offline.
+- **Utilisateur unique** : le directeur, au bureau, en ligne. Pas d'offline.
 - **Périmètre** : les 10 User Stories MVP qui touchent le back-office, plus US1.5/US1.6/US1.2 (Nice to have promues après livraison du MVP, cf. section 1).
 
 ---
@@ -156,7 +156,7 @@ Quatrième ticket Nice to have, premier du bloc « Exports ». Bouton « Exporte
 **Répartition backend/web délibérée, pour rester dans les limites déjà posées par l'architecture (« le backend fait foi pour les types », les libellés français sont une responsabilité des clients, jamais du backend — cf. `typeEquipement.ts`)** : `GET /interventions/export` renvoie du **JSON brut** (mêmes filtres que `GET /interventions`, sans pagination, technicien inclus en `{ nom }`), pas un CSV déjà généré côté serveur. Le CSV lui-même (`features/interventions/lib/csv.ts`, `genererCsvInterventions()`) est construit côté web, à partir des mêmes fonctions de libellé déjà utilisées par l'écran (`libelleStatut()` exportée de `StatusChip.tsx`, `libelleTypeEquipement()` de `typeEquipement.ts`) et du même formateur de date (`formatDateTime()`). Colonnes : Client, Adresse, Téléphone, Date prévue, Technicien, Statut, Type d'équipement, Date de réalisation, Problème constaté, Travaux réalisés.
 
 **Deux choix de format, documentés pour ne pas être « corrigés » par erreur plus tard** :
-- **Séparateur `;`, pas `,`** : Excel en locale française (poste de Cédric/M. Kouassi à Abidjan) traite la virgule comme séparateur décimal ; un CSV `,` s'ouvrirait en une seule colonne sans passer par l'assistant d'import.
+- **Séparateur `;`, pas `,`** : Excel en locale française (poste de Cédric/du directeur à Abidjan) traite la virgule comme séparateur décimal ; un CSV `,` s'ouvrirait en une seule colonne sans passer par l'assistant d'import.
 - **BOM UTF-8** (`﻿` préfixé au Blob) : sans lui, Excel interprète le fichier en ANSI et casse les accents (« Réalisée » devient illisible).
 - Tous les champs sont systématiquement entre guillemets (`champCsv()`), guillemets internes doublés — plus simple et plus sûr que d'échapper seulement quand nécessaire, vu que `problemeConstate`/`travauxRealises` sont du texte libre pouvant contenir `;` ou des guillemets.
 
@@ -248,6 +248,18 @@ Retour de Cédric : « comme les apps mobiles modernes qui affichent le nom d'un
 - **`components/layout/AppShell.tsx`** : le kicker statique est remplacé par `"{salutation}, {nom}"` une fois `useMoi()` résolu ; retombe sur le libellé statique « SIM · Interventions » pendant le chargement ou si la requête échoue (pas de flash à vide, même logique que `horodatage` déjà `null` avant le premier `useEffect`). L'horodatage à droite du kicker est inchangé, toujours mis à jour toutes les 60 s.
 - Nouveau `AppShell.test.tsx` (3 tests : libellé statique pendant le chargement, salutation affichée une fois le profil chargé, repli sur le libellé statique si la requête échoue). 138 tests verts au total, `tsc --noEmit` propre. Vérifié dans le navigateur à 15h59 : « BON APRÈS-MIDI, KOUASSI BERTIN » s'affiche bien à la place du kicker statique.
 
+**Le libellé statique lui-même change de nom dans le ticket suivant, ci-dessous** (« SIM · Interventions » → « Interveo ») : cette entrée documente l'état du code au moment de ce ticket, non corrigée rétroactivement (convention déjà suivie dans ce journal — les entrées datées reflètent l'état réel au moment où elles ont été écrites).
+
+### Renommage du produit : SIM Interventions → Interveo (2026-09-18)
+Avant de préparer le déploiement (GitHub, hébergement gratuit), Cédric a repositionné le projet : plutôt qu'un outil bâti pour un client fictif nommé (SOCIÉTÉ IVOIRE MAINTENANCE, M. Kouassi Bertin), le narratif devient un constat de terrain générique — les PME du bâtiment (électricité, sécurité électronique, domotique...) manquent d'un outil simple de suivi d'interventions. Objectif explicite : rendre le repo présentable dans un portfolio.
+
+**Périmètre décidé avec Cédric avant de commencer** (deux options soumises, choix explicite) :
+- **Visible et contexte uniquement** : `app/layout.tsx` (`metadata.title`/`description`), `components/layout/AppShell.tsx` (libellé statique de secours, cf. entrée ci-dessus), `components/layout/Rail.tsx` (monogramme du logo, `S` → `I`), `app/connexion/page.tsx` (logo « SIM » → « Interveo », sous-titre « Interventions · Ivoire Maintenance » → « Suivi d'interventions terrain », description des métiers alignée sur le nouveau contexte), `lib/utils/maps.ts` (commentaire), le contexte narratif de `docs/ADR.md`/`docs/architecture.md` (« M. Kouassi » → « le directeur »).
+- **Explicitement hors périmètre** : `package.json.name` (`sim-interventions-web`, identifiant technique npm), les fixtures de tests (`Kouassi Bertin` dans `AppShell.test.tsx`, `Koffi N'Guessan` ailleurs — exemples de données sans rapport avec le branding).
+- **Noté en dette technique, non traité** : `web/design/*.html` et `design/DESIGN-SYSTEM.md` (maquettes statiques historiques de la phase de conception, jamais servies par l'app réelle) mentionnent encore l'ancien nom par endroits — pas mis à jour, hors périmètre de ce ticket.
+
+Tests : `AppShell.test.tsx` mis à jour (`"SIM · Interventions"` → `"Interveo"` dans les 3 assertions). 138 tests toujours verts, `tsc --noEmit` propre.
+
 ### Menu déroulant personnalisé (`components/ui/Select.tsx`) — 2026-09-14
 Le `<select>` natif (filtre Technicien, champ Technicien assigné du formulaire) ouvre un menu dessiné par le système d'exploitation, impossible à restyler pour coller au design system — constat Cédric ("pas quelque chose de générique"). Reconstruit à la main (aucune nouvelle dépendance, ni Radix ni Headless UI) : un bouton déclencheur (`role="combobox"`, `aria-expanded`/`aria-controls`/`aria-haspopup`) et un panneau `role="listbox"` positionné en absolu, coché sur l'option sélectionnée. Navigation clavier (flèches, Entrée, Échap), fermeture au clic extérieur. Deux variantes visuelles pour un seul moteur d'interaction : `variant="field"` (soulignement + icône, même gabarit que `Champ` dans `InterventionForm.tsx`) et `variant="inline"` (libellé + valeur + chevron, sans bordure visible par défaut, pour `InterventionsFiltres.tsx`). Remplace l'ancien `Select.tsx` (wrapper de `<select>` natif jamais branché nulle part) au même emplacement.
 
@@ -330,7 +342,7 @@ Cédric a demandé la suppression définitive pour les interventions Annulées c
 - Les exports PDF du détail (US3.9) et CSV de la liste (US3.10) sont construits, cf. section 4.
 - Le tableau des comptes techniciens (US4.6), la création (US4.5), la désactivation (US4.7) et la réinitialisation de mot de passe (US4.9) sont construits, cf. section 4. **Le bloc « Comptes techniciens » est désormais complet.**
 - Champ « type d'équipement » dans le formulaire (US2.4 Nice to have, non promue).
-- Toute consultation mobile pour M. Kouassi.
+- Toute consultation mobile pour le directeur.
 
 ---
 

@@ -18,7 +18,7 @@ export function Rail() {
 
   return (
     <aside className="sticky top-0 flex h-screen shrink-0 flex-col items-center gap-1 overflow-hidden border-r border-line bg-paper py-4">
-      <span className="mb-3.5 font-serif text-base font-semibold tracking-tight text-ink-1">S</span>
+      <span className="mb-3.5 font-serif text-base font-semibold tracking-tight text-ink-1">I</span>
 
       <Link
         href="/interventions"

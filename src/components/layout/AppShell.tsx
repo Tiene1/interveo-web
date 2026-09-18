@@ -14,10 +14,10 @@ function formatHorodatage(date: Date): string {
 /**
  * Retour de Cedric le 2026-09-18 : "comme les apps mobiles modernes qui
  * affichent bonjour ou bonsoir", equivalent web du nom du technicien deja
- * affiche cote mobile. Remplace le kicker statique "SIM · Interventions"
- * par une salutation dynamique une fois le profil charge (GET /auth/moi,
- * deja utilise par RouteGuard/mobile) ; retombe sur le libelle statique
- * pendant le chargement ou si la requete echoue, pas de flash a vide.
+ * affiche cote mobile. Remplace le kicker statique "Interveo" par une
+ * salutation dynamique une fois le profil charge (GET /auth/moi, deja
+ * utilise par RouteGuard/mobile) ; retombe sur le libelle statique pendant
+ * le chargement ou si la requete echoue, pas de flash a vide.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const [horodatage, setHorodatage] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex h-full min-w-0 flex-col overflow-hidden bg-paper">
         <div className="flex shrink-0 items-center justify-between px-10 pt-5 pb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-text-weak">
           <span>
-            {moi.data && salutationActuelle ? `${salutationActuelle}, ${moi.data.nom}` : "SIM · Interventions"}
+            {moi.data && salutationActuelle ? `${salutationActuelle}, ${moi.data.nom}` : "Interveo"}
           </span>
           <span className="font-mono normal-case tracking-[0.02em] text-text-soft">{horodatage}</span>
         </div>

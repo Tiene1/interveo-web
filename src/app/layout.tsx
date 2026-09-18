@@ -22,8 +22,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SIM Interventions",
-  description: "Back-office de suivi des interventions techniques — SOCIÉTÉ IVOIRE MAINTENANCE",
+  title: "Interveo",
+  description: "Back-office de suivi des interventions techniques pour PME du bâtiment",
 };
 
 export default function RootLayout({

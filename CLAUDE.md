@@ -1,6 +1,6 @@
-# CLAUDE.md — Dépôt `web/` : back-office web SIM Interventions
+# CLAUDE.md — Dépôt `web/` : back-office web Interveo
 
-Règles pour l'agent Claude Code de ce dépôt. Tu écris le back-office web Next.js de SIM Interventions, utilisé uniquement par M. Kouassi, au bureau, en ligne.
+Règles pour l'agent Claude Code de ce dépôt. Tu écris le back-office web Next.js d'Interveo, un outil de suivi d'interventions techniques pour PME du bâtiment (électricité, sécurité électronique, domotique, plomberie, climatisation...), utilisé par le responsable de l'entreprise, au bureau, en ligne.
 
 ## Sources de vérité
 

@@ -30,7 +30,7 @@ describe("AppShell", () => {
   it("affiche le libelle statique tant que le profil n'est pas charge", () => {
     vi.mocked(apiRequest).mockReturnValue(new Promise(() => {}));
     renderShell();
-    expect(screen.getByText("SIM · Interventions")).toBeInTheDocument();
+    expect(screen.getByText("Interveo")).toBeInTheDocument();
   });
 
   it("affiche une salutation dynamique avec le nom une fois le profil charge", async () => {
@@ -46,7 +46,7 @@ describe("AppShell", () => {
     await waitFor(() =>
       expect(screen.getByText(/Kouassi Bertin/)).toBeInTheDocument(),
     );
-    expect(screen.queryByText("SIM · Interventions")).not.toBeInTheDocument();
+    expect(screen.queryByText("Interveo")).not.toBeInTheDocument();
   });
 
   it("retombe sur le libelle statique si la recuperation du profil echoue", async () => {
@@ -54,6 +54,6 @@ describe("AppShell", () => {
     renderShell();
 
     await waitFor(() => expect(vi.mocked(apiRequest)).toHaveBeenCalled());
-    expect(screen.getByText("SIM · Interventions")).toBeInTheDocument();
+    expect(screen.getByText("Interveo")).toBeInTheDocument();
   });
 });

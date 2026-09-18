@@ -1,5 +1,5 @@
 /**
- * M. Kouassi peut saisir soit un lien Google Maps colle tel quel, soit des
+ * Le directeur peut saisir soit un lien Google Maps colle tel quel, soit des
  * coordonnees ou une adresse texte. Dans le second cas on construit un lien
  * de recherche Google Maps.
  */
