@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
 import { StatePanel } from "@/components/ui/StatePanel";
 import { useDebouncedValue } from "@/lib/utils/useDebouncedValue";
+import { useScrollRestaure } from "@/lib/utils/useScrollRestaure";
 import { genererCsvInterventions } from "../lib/csv";
 import type { InterventionExport } from "../types/intervention";
 import { construireParamsFiltre, useInterventions } from "../hooks/useInterventions";
@@ -77,6 +78,10 @@ export function InterventionsListe() {
     motCle: motCleDebounce,
   });
   const techniciens = useTechniciens();
+  const { ref: scrollRef, onScroll } = useScrollRestaure<HTMLDivElement>(
+    "scroll:interventions-liste",
+    Boolean(interventions.data),
+  );
 
   function reinitialiserFiltres() {
     setTechnicienId("");
@@ -206,6 +211,8 @@ export function InterventionsListe() {
 
       {/* Zone scrollable : uniquement la liste */}
       <div
+        ref={scrollRef}
+        onScroll={onScroll}
         className={`min-h-0 flex-1 overflow-y-auto transition-opacity ${
           interventions.isFetching && !interventions.isPending ? "opacity-50" : ""
         }`}

@@ -10,6 +10,7 @@ import { useDesactiverCompteTechnicien } from "../hooks/useDesactiverCompteTechn
 import { useReactiverCompteTechnicien } from "../hooks/useReactiverCompteTechnicien";
 import { useSupprimerCompteTechnicien } from "../hooks/useSupprimerCompteTechnicien";
 import { useReinitialiserMotDePasse } from "../hooks/useReinitialiserMotDePasse";
+import { useScrollRestaure } from "@/lib/utils/useScrollRestaure";
 import { CreerCompteModal } from "./CreerCompteModal";
 import { ConfirmationDesactivationModal } from "./ConfirmationDesactivationModal";
 import { ConfirmationSuppressionCompteModal } from "./ConfirmationSuppressionCompteModal";
@@ -121,6 +122,10 @@ export function TechniciensListe() {
   const [technicienAReinitialiser, setTechnicienAReinitialiser] = useState<CompteTechnicien | null>(null);
   const [recherche, setRecherche] = useState("");
   const [statutFiltre, setStatutFiltre] = useState("");
+  const { ref: scrollRef, onScroll } = useScrollRestaure<HTMLDivElement>(
+    "scroll:techniciens-liste",
+    Boolean(techniciens.data),
+  );
 
   const techniciensFiltres = techniciens.data
     ? filtrerTechniciens(techniciens.data, recherche, statutFiltre)
@@ -204,7 +209,7 @@ export function TechniciensListe() {
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollRef} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto">
         {techniciens.isPending && <p className="pt-10 text-sm text-text-soft">Chargement…</p>}
 
         {techniciens.isError && (
