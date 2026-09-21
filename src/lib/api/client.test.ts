@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setToken, getToken } from "@/features/auth/lib/token";
-import { apiRequest } from "./client";
+import { apiRequest, reveillerServeur } from "./client";
 import { ApiError } from "./types";
 
 function mockFetchOnce(response: Partial<Response> & { json?: () => Promise<unknown> }) {
@@ -49,5 +49,25 @@ describe("apiRequest", () => {
 
     await expect(apiRequest("/auth/moi")).rejects.toThrow(ApiError);
     expect(getToken()).toBeNull();
+  });
+});
+
+describe("reveillerServeur", () => {
+  it("appelle /health sans jeton ni corps", () => {
+    setToken("jeton-de-test");
+    global.fetch = vi.fn().mockResolvedValue({ ok: true } as Response);
+
+    reveillerServeur();
+
+    const [url, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(String(url)).toMatch(/\/health$/);
+    expect(init).toBeUndefined();
+  });
+
+  it("ne leve jamais d'erreur, meme si le serveur est injoignable", async () => {
+    global.fetch = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+
+    expect(() => reveillerServeur()).not.toThrow();
+    await Promise.resolve();
   });
 });

@@ -3,12 +3,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/lib/api/query-client";
 import { ApiError } from "@/lib/api/types";
-import { apiRequest } from "@/lib/api/client";
+import { apiRequest, reveillerServeur } from "@/lib/api/client";
 import { getToken } from "../lib/token";
 import { LoginForm } from "./LoginForm";
 
 vi.mock("@/lib/api/client", () => ({
   apiRequest: vi.fn(),
+  reveillerServeur: vi.fn(),
 }));
 
 const push = vi.fn();
@@ -30,6 +31,15 @@ describe("LoginForm", () => {
     vi.mocked(apiRequest).mockReset();
     push.mockReset();
     window.localStorage.clear();
+  });
+
+  it("réveille le serveur dès l'ouverture, avant toute saisie", () => {
+    vi.mocked(reveillerServeur).mockClear();
+
+    renderLoginForm();
+
+    expect(reveillerServeur).toHaveBeenCalledTimes(1);
+    expect(apiRequest).not.toHaveBeenCalled();
   });
 
   it("affiche le message d'erreur sur une connexion échouée", async () => {

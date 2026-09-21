@@ -43,6 +43,16 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   return (await response.json()) as T;
 }
 
+/**
+ * Reveille le serveur sans rien attendre ni signaler. L'offre gratuite de
+ * l'hebergeur endort le backend apres ~15 min d'inactivite et il met jusqu'a
+ * une minute a repondre : appele a l'ouverture de la page de connexion, le
+ * reveil se fait pendant que l'utilisateur saisit ses identifiants.
+ */
+export function reveillerServeur(): void {
+  fetch(`${API_URL}/health`).catch(() => undefined);
+}
+
 /** Recupere un fichier protege par JWT (photos) en blob, jamais via <img src> direct. */
 export async function apiFetchBlob(path: string): Promise<Blob> {
   const response = await fetch(`${API_URL}${path}`, { headers: authHeaders() });

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
+import { reveillerServeur } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
 import { useLogin } from "../hooks/useLogin";
@@ -40,6 +41,10 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const login = useLogin();
   const erreur = login.isError ? decrireErreur(login.error) : null;
+
+  useEffect(() => {
+    reveillerServeur();
+  }, []);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
