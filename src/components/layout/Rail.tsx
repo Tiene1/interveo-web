@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { List, LogOut, Settings, Users } from "lucide-react";
+import { KeyRound, List, LogOut, Users } from "lucide-react";
+import { ChangerMotDePasseModal } from "@/features/auth/components/ChangerMotDePasseModal";
 import { clearToken } from "@/features/auth/lib/token";
 import { cn } from "@/lib/utils/cn";
 
@@ -10,6 +12,7 @@ const ITEM_CLASSES = "flex h-9 w-9 items-center justify-center rounded-md transi
 
 export function Rail() {
   const router = useRouter();
+  const [modalMotDePasseOuvert, setModalMotDePasseOuvert] = useState(false);
 
   function seDeconnecter() {
     clearToken();
@@ -37,9 +40,17 @@ export function Rail() {
 
       <div className="flex-1" />
 
-      <span aria-hidden className={cn(ITEM_CLASSES, "cursor-default text-text-soft")}>
-        <Settings size={18} strokeWidth={1.6} />
-      </span>
+      {/* Anciennement une icone Reglages decorative et inerte ; devenue le point
+          d'entree du changement de mot de passe (2026-09-21). */}
+      <button
+        type="button"
+        onClick={() => setModalMotDePasseOuvert(true)}
+        aria-label="Changer mon mot de passe"
+        title="Changer mon mot de passe"
+        className={cn(ITEM_CLASSES, "text-text-soft hover:bg-line-soft hover:text-ink-1")}
+      >
+        <KeyRound size={18} strokeWidth={1.6} />
+      </button>
       <button
         type="button"
         onClick={seDeconnecter}
@@ -49,6 +60,8 @@ export function Rail() {
       >
         <LogOut size={18} strokeWidth={1.6} />
       </button>
+
+      {modalMotDePasseOuvert && <ChangerMotDePasseModal onClose={() => setModalMotDePasseOuvert(false)} />}
     </aside>
   );
 }
