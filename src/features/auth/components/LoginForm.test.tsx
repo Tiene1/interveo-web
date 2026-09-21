@@ -55,6 +55,53 @@ describe("LoginForm", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it("annonce un blocage temporaire (429) sans accuser les identifiants", async () => {
+    vi.mocked(apiRequest).mockRejectedValue(
+      new ApiError(429, {
+        statusCode: 429,
+        message: "Trop de tentatives, reessayez dans une minute",
+        error: "Too Many Requests",
+        timestamp: "2026-09-21T00:00:00.000Z",
+        path: "/auth/login",
+        method: "POST",
+      }),
+    );
+
+    renderLoginForm();
+    fireEvent.change(screen.getByLabelText("Identifiant"), { target: { value: "kouassi" } });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), { target: { value: "x" } });
+    fireEvent.click(screen.getByText("Se connecter"));
+
+    const alerte = await screen.findByRole("alert");
+    expect(alerte).toHaveTextContent("Trop de tentatives");
+    expect(alerte).not.toHaveTextContent("Identifiant ou mot de passe incorrect");
+  });
+
+  it("signale un serveur injoignable (erreur reseau ou CORS) au lieu d'accuser les identifiants", async () => {
+    vi.mocked(apiRequest).mockRejectedValue(new TypeError("Failed to fetch"));
+
+    renderLoginForm();
+    fireEvent.change(screen.getByLabelText("Identifiant"), { target: { value: "kouassi" } });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), { target: { value: "x" } });
+    fireEvent.click(screen.getByText("Se connecter"));
+
+    const alerte = await screen.findByRole("alert");
+    expect(alerte).toHaveTextContent("Serveur injoignable");
+    expect(alerte).toHaveTextContent("une minute");
+    expect(alerte).not.toHaveTextContent("Identifiant ou mot de passe incorrect");
+  });
+
+  it("signale une erreur serveur (500) sans accuser les identifiants", async () => {
+    vi.mocked(apiRequest).mockRejectedValue(new ApiError(500, undefined));
+
+    renderLoginForm();
+    fireEvent.change(screen.getByLabelText("Identifiant"), { target: { value: "kouassi" } });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), { target: { value: "x" } });
+    fireEvent.click(screen.getByText("Se connecter"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("problème");
+  });
+
   it("redirige vers /interventions sur une connexion reussie", async () => {
     vi.mocked(apiRequest).mockResolvedValue({ accessToken: "jeton" });
 

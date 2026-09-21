@@ -7,8 +7,31 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
+import { ApiError } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
 import { useLogin } from "../hooks/useLogin";
+
+/**
+ * Le message doit refleter la vraie cause : jusqu'au 2026-09-21 tout echec
+ * affichait "Identifiant ou mot de passe incorrect", ce qui masquait un blocage
+ * de debit (429), un serveur injoignable ou un probleme CORS (constate en
+ * production : Cedric ne pouvait pas savoir si le serveur dormait ou non).
+ */
+function decrireErreur(erreur: Error | null): { message: string; identifiantsEnCause: boolean } {
+  if (erreur instanceof ApiError) {
+    if (erreur.status === 401) {
+      return { message: "Identifiant ou mot de passe incorrect", identifiantsEnCause: true };
+    }
+    if (erreur.status === 429) {
+      return { message: "Trop de tentatives. Patientez une minute, puis réessayez.", identifiantsEnCause: false };
+    }
+    return { message: "Le serveur a rencontré un problème. Réessayez dans un instant.", identifiantsEnCause: false };
+  }
+  return {
+    message: "Serveur injoignable. Inactif, il peut mettre jusqu'à une minute à se réveiller : réessayez dans un instant.",
+    identifiantsEnCause: false,
+  };
+}
 
 export function LoginForm() {
   const router = useRouter();
@@ -16,6 +39,7 @@ export function LoginForm() {
   const [motDePasse, setMotDePasse] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const login = useLogin();
+  const erreur = login.isError ? decrireErreur(login.error) : null;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -42,7 +66,7 @@ export function LoginForm() {
             onChange={(event) => setIdentifiant(event.target.value)}
             autoComplete="off"
             disabled={login.isPending}
-            error={login.isError}
+            error={erreur?.identifiantsEnCause}
           />
         </Field>
       </div>
@@ -52,7 +76,7 @@ export function LoginForm() {
           <div
             className={cn(
               "flex items-center gap-2 border-b py-2",
-              login.isError ? "border-danger" : "border-line-strong focus-within:border-ink-1",
+              erreur?.identifiantsEnCause ? "border-danger" : "border-line-strong focus-within:border-ink-1",
             )}
           >
             <input
@@ -73,13 +97,13 @@ export function LoginForm() {
             </button>
           </div>
         </Field>
-        {login.isError && (
+        {erreur && (
           <p
             role="alert"
             className="mt-2 flex items-center gap-2 border-t border-danger/15 pt-3 text-[13px] font-medium text-danger"
           >
             <AlertCircle size={14} strokeWidth={2} className="shrink-0" />
-            Identifiant ou mot de passe incorrect
+            {erreur.message}
           </p>
         )}
       </div>
@@ -91,8 +115,10 @@ export function LoginForm() {
           {!login.isPending && <ArrowRight size={14} strokeWidth={1.75} />}
         </Button>
         <div className="flex items-center justify-between text-xs text-text-weak">
-          {login.isError ? (
+          {erreur?.identifiantsEnCause ? (
             <span>Vérifiez vos identifiants et réessayez</span>
+          ) : erreur ? (
+            <span>Vos identifiants ne sont pas en cause</span>
           ) : (
             <>
               <span>Utilisez vos identifiants professionnels</span>
