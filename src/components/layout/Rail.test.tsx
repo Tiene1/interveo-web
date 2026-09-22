@@ -41,6 +41,21 @@ describe("Rail", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("l'icône crayon ouvre la fenêtre de changement de nom, Annuler la ferme", () => {
+    render(
+      <QueryClientProvider client={createQueryClient()}>
+        <Rail />
+      </QueryClientProvider>,
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("Changer mon nom"));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Annuler" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("le lien Techniciens pointe vers /techniciens (US4.6)", () => {
     render(<Rail />);
 

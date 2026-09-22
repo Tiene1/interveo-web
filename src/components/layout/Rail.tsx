@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { KeyRound, List, LogOut, Users } from "lucide-react";
+import { KeyRound, List, LogOut, UserPen, Users } from "lucide-react";
 import { ChangerMotDePasseModal } from "@/features/auth/components/ChangerMotDePasseModal";
+import { ChangerNomModal } from "@/features/auth/components/ChangerNomModal";
 import { clearToken } from "@/features/auth/lib/token";
 import { cn } from "@/lib/utils/cn";
 
@@ -13,6 +14,7 @@ const ITEM_CLASSES = "flex h-9 w-9 items-center justify-center rounded-md transi
 export function Rail() {
   const router = useRouter();
   const [modalMotDePasseOuvert, setModalMotDePasseOuvert] = useState(false);
+  const [modalNomOuvert, setModalNomOuvert] = useState(false);
 
   function seDeconnecter() {
     clearToken();
@@ -53,6 +55,15 @@ export function Rail() {
       </button>
       <button
         type="button"
+        onClick={() => setModalNomOuvert(true)}
+        aria-label="Changer mon nom"
+        title="Changer mon nom"
+        className={cn(ITEM_CLASSES, "text-text-soft hover:bg-line-soft hover:text-ink-1")}
+      >
+        <UserPen size={18} strokeWidth={1.6} />
+      </button>
+      <button
+        type="button"
         onClick={seDeconnecter}
         aria-label="Se déconnecter"
         title="Se déconnecter"
@@ -62,6 +73,7 @@ export function Rail() {
       </button>
 
       {modalMotDePasseOuvert && <ChangerMotDePasseModal onClose={() => setModalMotDePasseOuvert(false)} />}
+      {modalNomOuvert && <ChangerNomModal onClose={() => setModalNomOuvert(false)} />}
     </aside>
   );
 }
