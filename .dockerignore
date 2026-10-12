@@ -1,0 +1,24 @@
+# Ne pas envoyer au demon Docker : dependances locales, sorties de build et
+# fichiers d'environnement (l'adresse de l'API arrive par l'argument de build).
+node_modules
+.next
+out
+coverage
+*.tsbuildinfo
+*.log
+
+.env
+.env.*
+!.env.example
+
+.git
+.github
+.vscode
+.idea
+.claude
+
+docs
+README.md
+CLAUDE.md
+Dockerfile
+.dockerignore
