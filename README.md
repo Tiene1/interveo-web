@@ -37,3 +37,7 @@ L'adresse de l'API (`NEXT_PUBLIC_API_URL`) est **intégrée au code au moment du
 ## Intégration continue
 
 Chaque push et chaque pull request lancent GitHub Actions (`.github/workflows/ci.yml`) : types, lint, tests et build de production. La CI ne déploie rien : Vercel redéploie de son côté à chaque push sur `main`.
+
+## Licence
+
+Licence MIT — voir [LICENSE](LICENSE).
