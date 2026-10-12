@@ -9,15 +9,38 @@ Back-office de suivi d'interventions techniques pour PME du bâtiment (électric
 - Règles de développement : `CLAUDE.md`.
 - En production : Vercel (site statique), qui appelle l'API Interveo hébergée sur Render.
 
-## Démarrage
+## Essayer Interveo en une commande (Docker)
+
+Seul prérequis : [Docker](https://docs.docker.com/get-started/get-docker/). Le `docker-compose.yml` complet vit dans le dépôt de l'API, qui construit ce back-office directement depuis GitHub : un seul clone suffit.
 
 ```bash
-cp .env.example .env.local   # NEXT_PUBLIC_API_URL : adresse du backend
+git clone https://github.com/Tiene1/interveo-backend.git
+cd interveo-backend
+docker compose up
+```
+
+Puis ouvrez http://localhost:3001 et connectez-vous avec le compte directeur de démo : `kouassi` / `directeur123`.
+
+`docker compose up` lance plusieurs conteneurs (base PostgreSQL, migrations, API, ce site servi par nginx) : le détail, les autres comptes, la gestion des ports (`API_PORT`, `WEB_PORT`) et la remise à zéro sont dans le [README de l'API](https://github.com/Tiene1/interveo-backend#essayer-interveo-en-une-commande-docker). Point à retenir : l'adresse de l'API est **intégrée au site à sa construction**, donc si vous changez `API_PORT`, relancez avec `docker compose up --build`.
+
+Le `Dockerfile` de ce dépôt peut aussi servir seul (il faut alors une API joignable depuis votre navigateur) :
+
+```bash
+docker build -t interveo-web --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000 .
+docker run --rm -p 3001:80 interveo-web
+```
+
+## Démarrage manuel
+
+Prérequis : Node 24, et l'API Interveo qui tourne sur `http://localhost:3000` (dépôt [interveo-backend](https://github.com/Tiene1/interveo-backend) : `docker compose up` ou démarrage manuel). La variable `CORS_ORIGIN` de l'API doit contenir `http://localhost:3001` (c'est le cas par défaut).
+
+```bash
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL : http://localhost:3000 par défaut
 npm install
 npm run dev                  # http://localhost:3001
 ```
 
-Le backend doit tourner (voir le dépôt `interveo-backend`) et autoriser l'adresse du site dans sa variable `CORS_ORIGIN`.
+Compte directeur de démo : `kouassi` / `directeur123` (créé par `npx prisma db seed` côté API).
 
 ## Scripts
 
